@@ -1,4 +1,10 @@
 {
   "cleanUrls": true,
-  "public": true
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/api/fas/(.*)",
+      "destination": "/api/fas?path=$1"
+    }
+  ]
 }
