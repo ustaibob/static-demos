@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(claude mcp:*)",
+      "Read(//c/Users/groga/**)",
+      "WebSearch"
+    ]
+  }
+}

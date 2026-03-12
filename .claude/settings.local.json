@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "mcp__fas-api__fas_list_operations",
+      "mcp__fas-api__fas_call_operation",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:www.koyeb.com)"
+    ]
+  }
+}
