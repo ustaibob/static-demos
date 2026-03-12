@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAS Supply Chain Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef3f1;
+    --ink: #17323b;
+    --muted: #4e6670;
+    --card: #fcfffd;
+    --line: #cad8d3;
+    --accent: #0f766e;
+    --accent-2: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Public Sans", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 8% 10%, rgba(15, 118, 110, 0.18), transparent 30%),
+      radial-gradient(circle at 92% 12%, rgba(180, 83, 9, 0.13), transparent 30%),
+      linear-gradient(180deg, #edf4f1, #e7eeeb);
+  }
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 28px 18px 40px;
+  }
+  .hero {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(252, 255, 253, 0.95), rgba(247, 252, 250, 0.9));
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .redirect-banner {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(222, 242, 238, 0.95), rgba(255, 247, 235, 0.95));
+  }
+  .redirect-text {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .redirect-text strong {
+    color: var(--ink);
+  }
+  .redirect-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fcfffd;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+  .btn.primary {
+    background: var(--accent);
+    border-color: transparent;
+    color: #f3ffff;
+  }
+  .title {
+    margin: 0;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 40px;
+    letter-spacing: 0.02em;
+  }
+  .subtitle {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    padding: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .12s ease, box-shadow .12s ease;
+    box-shadow: 0 8px 18px rgba(26, 43, 50, 0.08);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px rgba(26, 43, 50, 0.11);
+  }
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+  }
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    color: #0f3f3a;
+    background: #def2ee;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1 class="title">FAS Supply Chain Portal</h1>
+      <p class="subtitle">Root home page for planning and monitoring foreign agriculture risk and timing flows.</p>
+      <div class="redirect-banner" id="redirect-banner">
+        <div class="redirect-text">
+          <strong>Default route:</strong> opening Plan Builder in <span id="countdown">2</span>s so planning starts at the right entry point.
+        </div>
+        <div class="redirect-actions">
+          <button class="btn" id="stay-btn" type="button">Stay Here</button>
+          <button class="btn primary" id="open-now-btn" type="button">Open Plan Builder</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <a class="card" href="/fas-plan-builder">
+        <span class="tag">Plan</span>
+        <h2>Plan Builder</h2>
+        <p>Create, save, and launch scenario plans into live dashboards with thresholds and target settings.</p>
+      </a>
+      <a class="card" href="/fas-supply-chain-dashboard">
+        <span class="tag">Primary</span>
+        <h2>Supply Chain Dashboard</h2>
+        <p>Track concentration, trade ratio, freshness timing, and progress against plan side-by-side.</p>
+      </a>
+      <a class="card" href="/fas-lane-companion">
+        <span class="tag">Companion</span>
+        <h2>Lane Companion</h2>
+        <p>Monitor customs district lane exposure and import/export imbalances by partner and month.</p>
+      </a>
+      <a class="card" href="/usda-fas-explorer_1">
+        <span class="tag">API</span>
+        <h2>Endpoint Explorer</h2>
+        <p>Inspect and run USDA FAS operations directly for analysis and troubleshooting.</p>
+      </a>
+    </section>
+  </div>
+  <script>
+    const PLAN_BUILDER_URL = "/fas-plan-builder";
+    const countdownEl = document.getElementById("countdown");
+    const stayBtn = document.getElementById("stay-btn");
+    const openNowBtn = document.getElementById("open-now-btn");
+    const bannerEl = document.getElementById("redirect-banner");
+
+    let secondsRemaining = 2;
+    let redirectCancelled = false;
+
+    const intervalId = window.setInterval(() => {
+      if (redirectCancelled) {
+        window.clearInterval(intervalId);
+        return;
+      }
+
+      secondsRemaining -= 1;
+
+      if (secondsRemaining <= 0) {
+        window.clearInterval(intervalId);
+        window.location.href = PLAN_BUILDER_URL;
+        return;
+      }
+
+      countdownEl.textContent = String(secondsRemaining);
+    }, 1000);
+
+    stayBtn.addEventListener("click", () => {
+      redirectCancelled = true;
+      bannerEl.querySelector(".redirect-text").innerHTML = "<strong>Redirect cancelled.</strong> The root page will stay on the portal until you choose a destination.";
+    });
+
+    openNowBtn.addEventListener("click", () => {
+      window.location.href = PLAN_BUILDER_URL;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAS Plan Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f0e6;
+    --ink: #1f2a37;
+    --muted: #516173;
+    --panel: #fffdf8;
+    --line: #d8d0bc;
+    --accent: #0f766e;
+    --danger: #b91c1c;
+    --mono: "IBM Plex Mono", monospace;
+    --sans: "Outfit", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: var(--sans);
+    background:
+      radial-gradient(circle at 9% 11%, rgba(15, 118, 110, .16), transparent 30%),
+      radial-gradient(circle at 91% 8%, rgba(180, 83, 9, .14), transparent 30%),
+      linear-gradient(180deg, #f2efe4, #ece6d7);
+  }
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    background: rgba(242, 239, 228, 0.9);
+    backdrop-filter: blur(6px);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+  }
+  .topbar a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,253,248,.96), rgba(255,251,242,.9));
+    padding: 12px;
+    box-shadow: 0 10px 22px rgba(40, 44, 55, .09);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 9px;
+  }
+  @media (max-width: 850px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  label {
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  input, select {
+    font: inherit;
+    border-radius: 8px;
+    border: 1px solid #baa98c;
+    background: #fffef9;
+    color: var(--ink);
+    padding: 8px 9px;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+  }
+  .title {
+    margin: 0 0 8px;
+    font-size: 20px;
+  }
+  .hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .buttons {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 1px solid #baa98c;
+    border-radius: 8px;
+    background: #fff9ee;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+  button.primary {
+    background: var(--accent);
+    border-color: transparent;
+    color: #ecffff;
+    font-weight: 700;
+  }
+  button.danger {
+    color: var(--danger);
+    border-color: #d9b4b4;
+    background: #fff6f6;
+  }
+  .status {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+    font-size: 12px;
+  }
+  .table-wrap {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: auto;
+    background: #fffef9;
+    max-height: 370px;
+  }
+  th, td {
+    text-align: left;
+    padding: 7px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    position: sticky;
+    top: 0;
+    background: #f4ecdc;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .empty {
+    border: 1px dashed #c8b99b;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fffcf3;
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <strong>FAS Plan Builder</strong>
+  <div>
+    <a href="/">Home</a> |
+    <a href="/fas-supply-chain-dashboard">Primary Dashboard</a> |
+    <a href="/fas-lane-companion">Lane Companion</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="card">
+    <h1 class="title">Add Or Update A Plan</h1>
+    <p class="hint">Save a reusable baseline and launch it into either dashboard with one click.</p>
+
+    <div class="grid" style="margin-top:10px;">
+      <label>Plan Name
+        <input id="plan-name" type="text" placeholder="Coffee LATAM Q3 Risk Plan">
+      </label>
+      <label>Commodity Code
+        <input id="commodity-code" type="text" placeholder="ex: 090111 (coffee) or FAS code">
+      </label>
+      <label>Focus Country Code
+        <input id="country-code" type="text" placeholder="ex: BR, CO, EC">
+      </label>
+      <label>Partner Code
+        <input id="partner-code" type="text" placeholder="ex: CO, EC, GT, HN, PE, MX">
+      </label>
+      <label>Market Year
+        <input id="market-year" type="number" min="1960" max="2100">
+      </label>
+      <label>Trade Year
+        <input id="trade-year" type="number" min="1960" max="2100">
+      </label>
+      <label>Trade Month
+        <input id="trade-month" type="number" min="1" max="12">
+      </label>
+      <label>Country Share Alert (%)
+        <input id="share-pct" type="number" min="1" max="100" step="0.1" value="15">
+      </label>
+      <label>Import/Export Ratio Alert
+        <input id="ratio" type="number" min="0.5" max="10" step="0.05" value="1.20">
+      </label>
+      <label>Data Staleness Alert (days)
+        <input id="stale-days" type="number" min="1" max="365" value="45">
+      </label>
+      <label>Plan Buffer Target (%)
+        <input id="plan-buffer-pct" type="number" min="0" max="100" step="0.5" value="8">
+      </label>
+      <label>District Concentration Alert (%)
+        <input id="district-threshold-pct" type="number" min="1" max="100" step="0.5" value="25">
+      </label>
+      <label>Flow Imbalance Alert (%)
+        <input id="imbalance-threshold-pct" type="number" min="1" max="400" step="1" value="35">
+      </label>
+    </div>
+
+    <div class="buttons">
+      <button class="primary" id="save-btn">Save Plan</button>
+      <button id="clear-btn">Clear Form</button>
+      <button id="open-primary-btn">Open In Primary Dashboard</button>
+      <button id="open-lane-btn">Open In Lane Companion</button>
+    </div>
+    <div class="status" id="status">Ready.</div>
+  </section>
+
+  <section class="card">
+    <h2 class="title" style="font-size:17px;">Saved Plans</h2>
+    <div class="table-wrap" id="plans-table"></div>
+  </section>
+</div>
+
+<script>
+  const STORAGE_KEY = "fasSavedPlans";
+
+  const el = {
+    planName: document.getElementById("plan-name"),
+    commodityCode: document.getElementById("commodity-code"),
+    countryCode: document.getElementById("country-code"),
+    partnerCode: document.getElementById("partner-code"),
+    marketYear: document.getElementById("market-year"),
+    tradeYear: document.getElementById("trade-year"),
+    tradeMonth: document.getElementById("trade-month"),
+    sharePct: document.getElementById("share-pct"),
+    ratio: document.getElementById("ratio"),
+    staleDays: document.getElementById("stale-days"),
+    planBufferPct: document.getElementById("plan-buffer-pct"),
+    districtThresholdPct: document.getElementById("district-threshold-pct"),
+    imbalanceThresholdPct: document.getElementById("imbalance-threshold-pct"),
+    saveBtn: document.getElementById("save-btn"),
+    clearBtn: document.getElementById("clear-btn"),
+    openPrimaryBtn: document.getElementById("open-primary-btn"),
+    openLaneBtn: document.getElementById("open-lane-btn"),
+    status: document.getElementById("status"),
+    plansTable: document.getElementById("plans-table")
+  };
+
+  function setStatus(message) {
+    el.status.textContent = message;
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function loadPlans() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function savePlans(plans) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
+  }
+
+  function currentFormPlan() {
+    return {
+      id: Date.now().toString(),
+      planName: el.planName.value.trim(),
+      commodityCode: el.commodityCode.value.trim(),
+      countryCode: el.countryCode.value.trim(),
+      partnerCode: el.partnerCode.value.trim(),
+      marketYear: String(el.marketYear.value || "").trim(),
+      tradeYear: String(el.tradeYear.value || "").trim(),
+      tradeMonth: String(el.tradeMonth.value || "").trim(),
+      sharePct: String(el.sharePct.value || "").trim(),
+      ratio: String(el.ratio.value || "").trim(),
+      staleDays: String(el.staleDays.value || "").trim(),
+      planBufferPct: String(el.planBufferPct.value || "").trim(),
+      districtThresholdPct: String(el.districtThresholdPct.value || "").trim(),
+      imbalanceThresholdPct: String(el.imbalanceThresholdPct.value || "").trim(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function writePlanToForm(plan) {
+    el.planName.value = plan.planName || "";
+    el.commodityCode.value = plan.commodityCode || "";
+    el.countryCode.value = plan.countryCode || "";
+    el.partnerCode.value = plan.partnerCode || "";
+    el.marketYear.value = plan.marketYear || "";
+    el.tradeYear.value = plan.tradeYear || "";
+    el.tradeMonth.value = plan.tradeMonth || "";
+    el.sharePct.value = plan.sharePct || "";
+    el.ratio.value = plan.ratio || "";
+    el.staleDays.value = plan.staleDays || "";
+    el.planBufferPct.value = plan.planBufferPct || "";
+    el.districtThresholdPct.value = plan.districtThresholdPct || "";
+    el.imbalanceThresholdPct.value = plan.imbalanceThresholdPct || "";
+  }
+
+  function clearForm() {
+    el.planName.value = "";
+    el.commodityCode.value = "";
+    el.countryCode.value = "";
+    el.partnerCode.value = "";
+    const now = new Date();
+    el.marketYear.value = String(now.getFullYear() - 1);
+    el.tradeYear.value = String(now.getFullYear() - 1);
+    el.tradeMonth.value = String(Math.max(1, now.getMonth()));
+    el.sharePct.value = "15";
+    el.ratio.value = "1.20";
+    el.staleDays.value = "45";
+    el.planBufferPct.value = "8";
+    el.districtThresholdPct.value = "25";
+    el.imbalanceThresholdPct.value = "35";
+  }
+
+  function planToQuery(plan) {
+    const query = new URLSearchParams();
+    const add = (key, value) => {
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        query.set(key, String(value).trim());
+      }
+    };
+
+    add("commodityCode", plan.commodityCode);
+    add("countryCode", plan.countryCode);
+    add("partnerCode", plan.partnerCode);
+    add("marketYear", plan.marketYear);
+    add("tradeYear", plan.tradeYear);
+    add("tradeMonth", plan.tradeMonth);
+    add("sharePct", plan.sharePct);
+    add("ratio", plan.ratio);
+    add("staleDays", plan.staleDays);
+    add("planBufferPct", plan.planBufferPct);
+    add("districtThresholdPct", plan.districtThresholdPct);
+    add("imbalanceThresholdPct", plan.imbalanceThresholdPct);
+
+    return query.toString();
+  }
+
+  function saveCurrentPlan() {
+    const plan = currentFormPlan();
+    if (!plan.planName) {
+      setStatus("Plan name is required.");
+      return;
+    }
+
+    const plans = loadPlans();
+    const index = plans.findIndex((item) => item.planName.toLowerCase() === plan.planName.toLowerCase());
+
+    if (index >= 0) {
+      plan.id = plans[index].id;
+      plans[index] = plan;
+      setStatus("Plan updated.");
+    } else {
+      plans.unshift(plan);
+      setStatus("Plan saved.");
+    }
+
+    savePlans(plans);
+    renderPlans();
+  }
+
+  function deletePlan(id) {
+    const next = loadPlans().filter((plan) => plan.id !== id);
+    savePlans(next);
+    renderPlans();
+    setStatus("Plan deleted.");
+  }
+
+  function openPrimary(plan) {
+    const query = planToQuery(plan || currentFormPlan());
+    window.location.href = `/fas-supply-chain-dashboard${query ? `?${query}` : ""}`;
+  }
+
+  function openLane(plan) {
+    const query = planToQuery(plan || currentFormPlan());
+    window.location.href = `/fas-lane-companion${query ? `?${query}` : ""}`;
+  }
+
+  function renderPlans() {
+    const plans = loadPlans();
+
+    if (!plans.length) {
+      el.plansTable.innerHTML = `<div class="empty">No saved plans yet. Add one above and click Save Plan.</div>`;
+      return;
+    }
+
+    el.plansTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Commodity</th>
+            <th>Country</th>
+            <th>Partner</th>
+            <th>Years</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${plans.map((plan) => `
+            <tr>
+              <td>${escapeHtml(plan.planName)}</td>
+              <td>${escapeHtml(plan.commodityCode || "-")}</td>
+              <td>${escapeHtml(plan.countryCode || "-")}</td>
+              <td>${escapeHtml(plan.partnerCode || "-")}</td>
+              <td>${escapeHtml(`${plan.marketYear || "-"} / ${plan.tradeYear || "-"}-${plan.tradeMonth || "-"}`)}</td>
+              <td>${escapeHtml(new Date(plan.updatedAt).toLocaleString())}</td>
+              <td>
+                <button data-action="load" data-id="${escapeHtml(plan.id)}">Load</button>
+                <button data-action="primary" data-id="${escapeHtml(plan.id)}">Open Primary</button>
+                <button data-action="lane" data-id="${escapeHtml(plan.id)}">Open Lane</button>
+                <button class="danger" data-action="delete" data-id="${escapeHtml(plan.id)}">Delete</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  el.saveBtn.addEventListener("click", saveCurrentPlan);
+  el.clearBtn.addEventListener("click", () => {
+    clearForm();
+    setStatus("Form cleared.");
+  });
+  el.openPrimaryBtn.addEventListener("click", () => openPrimary(null));
+  el.openLaneBtn.addEventListener("click", () => openLane(null));
+
+  el.plansTable.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action][data-id]");
+    if (!button) {
+      return;
+    }
+
+    const plans = loadPlans();
+    const id = button.getAttribute("data-id");
+    const action = button.getAttribute("data-action");
+    const plan = plans.find((item) => item.id === id);
+
+    if (!plan) {
+      setStatus("Selected plan was not found.");
+      return;
+    }
+
+    if (action === "load") {
+      writePlanToForm(plan);
+      setStatus(`Loaded plan: ${plan.planName}`);
+      return;
+    }
+
+    if (action === "primary") {
+      openPrimary(plan);
+      return;
+    }
+
+    if (action === "lane") {
+      openLane(plan);
+      return;
+    }
+
+    if (action === "delete") {
+      deletePlan(plan.id);
+    }
+  });
+
+  clearForm();
+  renderPlans();
+</script>
+</body>
+</html>

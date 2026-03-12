@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAS Global Supply Chain Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1e8;
+    --ink: #1f2a37;
+    --ink-soft: #4b5d73;
+    --panel: #fffdf7;
+    --line: #d6cfbf;
+    --line-strong: #bba98a;
+    --accent: #0f766e;
+    --accent-soft: #e2f4f2;
+    --alert: #b45309;
+    --good: #0f766e;
+    --bad: #b91c1c;
+    --mono: "IBM Plex Mono", monospace;
+    --sans: "Manrope", sans-serif;
+    --shadow: 0 12px 28px rgba(42, 46, 58, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 8%, rgba(15, 118, 110, 0.18), transparent 34%),
+      radial-gradient(circle at 85% 10%, rgba(180, 83, 9, 0.12), transparent 34%),
+      linear-gradient(180deg, #f7f3ea 0%, #f0ecdf 38%, #ece6d8 100%);
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--line);
+    background: rgba(247, 243, 234, 0.92);
+    backdrop-filter: blur(6px);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid var(--line-strong);
+    color: #0f3d39;
+    background: #d8ebe8;
+    border-radius: 999px;
+    padding: 3px 8px;
+  }
+
+  .meta {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  .meta a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 340px) 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  @media (max-width: 1080px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255, 253, 247, 0.95), rgba(255, 252, 246, 0.85));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .controls {
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    min-height: calc(100vh - 96px);
+    animation: slideIn .35s ease both;
+  }
+
+  .main {
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    animation: fadeRise .42s ease both;
+  }
+
+  @keyframes fadeRise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-7px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .group {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.45);
+    display: grid;
+    gap: 8px;
+  }
+
+  .group-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+  }
+
+  label {
+    display: grid;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  select, input {
+    font: inherit;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 8px 9px;
+    color: var(--ink);
+    background: #fffdf8;
+  }
+
+  select:focus, input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    border-radius: 8px;
+    border: 1px solid var(--line-strong);
+    background: #fff9ed;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+
+  button.primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: #efffff;
+    font-weight: 700;
+  }
+
+  button:hover { filter: brightness(0.98); }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .status.error { color: var(--bad); }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+  }
+
+  .kpi {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px;
+    background: linear-gradient(180deg, #fffef9, #f8f4e9);
+  }
+
+  .kpi .name {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .kpi .value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .kpi .value.good { color: var(--good); }
+  .kpi .value.bad { color: var(--bad); }
+  .kpi .value.warn { color: var(--alert); }
+
+  .panel-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .small-note {
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 920px) {
+    .split {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .bars {
+    display: grid;
+    gap: 8px;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 160px) 1fr minmax(70px, 95px);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #efe8d8;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0f766e, #14b8a6);
+    transform-origin: left;
+    animation: grow .5s ease both;
+  }
+
+  @keyframes grow {
+    from { transform: scaleX(0.01); }
+    to { transform: scaleX(1); }
+  }
+
+  .bar-value {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+    color: var(--ink-soft);
+  }
+
+  .insights {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 5px;
+    color: #2a3848;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .table-wrap {
+    max-height: 330px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fffefb;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 610px;
+    font-size: 12px;
+  }
+
+  th, td {
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    padding: 7px;
+    vertical-align: top;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #f5efdf;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+    font-family: var(--mono);
+  }
+
+  .empty {
+    border: 1px dashed var(--line-strong);
+    border-radius: 9px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: #fffcf3;
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="pill">USDA FAS</span>
+    Global Supply Chain Radar
+  </div>
+  <div class="meta">
+    Manager dashboard for PSD + GATS data<br>
+    <a href="/fas-plan-builder">Plan builder</a> | <a href="/fas-lane-companion">Open lane companion</a> | <a href="/usda-fas-explorer_1">Endpoint explorer</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="card controls">
+    <div class="group">
+      <div class="group-title">Scenario</div>
+      <label>Commodity
+        <select id="commodity-select"></select>
+      </label>
+      <label>Focus Country
+        <select id="country-select"></select>
+      </label>
+      <label>Market Year
+        <input id="market-year" type="number" min="1960" max="2100">
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Trade Pulse</div>
+      <label>Partner Country
+        <select id="partner-select"></select>
+      </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <label>Year
+          <input id="trade-year" type="number" min="1960" max="2100">
+        </label>
+        <label>Month
+          <input id="trade-month" type="number" min="1" max="12">
+        </label>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Risk Thresholds (User Entered)</div>
+      <label>Country Share Alert (%)
+        <input id="share-threshold" type="number" min="1" max="100" step="0.1">
+      </label>
+      <label>Import/Export Ratio Alert
+        <input id="ratio-threshold" type="number" min="0.5" max="10" step="0.05">
+      </label>
+      <label>Data Staleness Alert (days)
+        <input id="stale-threshold" type="number" min="1" max="365" step="1">
+      </label>
+      <label>Plan Buffer Target (%)
+        <input id="buffer-threshold" type="number" min="0" max="100" step="0.5">
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="primary" id="refresh-btn">Refresh Dashboard</button>
+      <button id="copy-params-btn">Copy Scenario</button>
+    </div>
+    <div class="status" id="status">Loading API metadata...</div>
+  </aside>
+
+  <main class="card main">
+    <section>
+      <div class="panel-title">Overview KPIs <span class="small-note" id="kpi-context"></span></div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+    </section>
+
+    <section class="split">
+      <div class="card" style="padding:10px; box-shadow:none;">
+        <div class="panel-title">Top Country Exposure</div>
+        <div class="small-note" id="exposure-note"></div>
+        <div class="bars" id="exposure-bars" style="margin-top:10px;"></div>
+      </div>
+      <div class="card" style="padding:10px; box-shadow:none;">
+        <div class="panel-title">Attribute Mix</div>
+        <div class="small-note" id="attribute-note"></div>
+        <div class="bars" id="attribute-bars" style="margin-top:10px;"></div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="card" style="padding:10px; box-shadow:none;">
+        <div class="panel-title">Partner Commodity Footprint</div>
+        <div class="small-note" id="trade-note"></div>
+        <div class="table-wrap" id="trade-table"></div>
+      </div>
+      <div class="card" style="padding:10px; box-shadow:none;">
+        <div class="panel-title">Signals to Watch</div>
+        <ul class="insights" id="insights-list"></ul>
+      </div>
+    </section>
+
+    <section class="card" style="padding:10px; box-shadow:none;">
+      <div class="panel-title">Progress Against Plan (Side-by-Side)</div>
+      <div class="small-note" id="plan-note"></div>
+      <div class="table-wrap" id="plan-table"></div>
+    </section>
+
+    <section class="card" style="padding:10px; box-shadow:none;">
+      <div class="panel-title">Data Freshness</div>
+      <div class="table-wrap" id="freshness-table"></div>
+    </section>
+  </main>
+</div>
+
+<script type="module">
+  import { createFASClient } from "./fas-api-client.js";
+
+  const state = {
+    client: createFASClient(),
+    opIds: {},
+    refs: {
+      psdCommodities: [],
+      psdCountries: [],
+      gatsCountries: []
+    },
+    data: {
+      psd: null,
+      trade: null,
+      freshness: null
+    }
+  };
+
+  const el = {
+    commoditySelect: document.getElementById("commodity-select"),
+    countrySelect: document.getElementById("country-select"),
+    marketYear: document.getElementById("market-year"),
+    partnerSelect: document.getElementById("partner-select"),
+    tradeYear: document.getElementById("trade-year"),
+    tradeMonth: document.getElementById("trade-month"),
+    shareThreshold: document.getElementById("share-threshold"),
+    ratioThreshold: document.getElementById("ratio-threshold"),
+    staleThreshold: document.getElementById("stale-threshold"),
+    bufferThreshold: document.getElementById("buffer-threshold"),
+    refreshBtn: document.getElementById("refresh-btn"),
+    copyParamsBtn: document.getElementById("copy-params-btn"),
+    status: document.getElementById("status"),
+    kpiGrid: document.getElementById("kpi-grid"),
+    kpiContext: document.getElementById("kpi-context"),
+    exposureNote: document.getElementById("exposure-note"),
+    exposureBars: document.getElementById("exposure-bars"),
+    attributeNote: document.getElementById("attribute-note"),
+    attributeBars: document.getElementById("attribute-bars"),
+    tradeNote: document.getElementById("trade-note"),
+    tradeTable: document.getElementById("trade-table"),
+    insightsList: document.getElementById("insights-list"),
+    planNote: document.getElementById("plan-note"),
+    planTable: document.getElementById("plan-table"),
+    freshnessTable: document.getElementById("freshness-table")
+  };
+
+  function setStatus(message, isError = false) {
+    el.status.textContent = message;
+    el.status.className = isError ? "status error" : "status";
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function toArray(data) {
+    return Array.isArray(data) ? data : [];
+  }
+
+  function parseNum(value) {
+    const parsed = Number(String(value ?? "").replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function fmtNumber(value, digits = 0) {
+    if (!Number.isFinite(value)) {
+      return "n/a";
+    }
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  }
+
+  function fmtPercent(value) {
+    if (!Number.isFinite(value)) {
+      return "n/a";
+    }
+    return `${(value * 100).toFixed(1)}%`;
+  }
+
+  function likelyKey(keys, includePatterns, excludePatterns = []) {
+    for (const key of keys) {
+      const lowered = key.toLowerCase();
+      if (excludePatterns.some((p) => lowered.includes(p))) {
+        continue;
+      }
+      if (includePatterns.some((p) => lowered.includes(p))) {
+        return key;
+      }
+    }
+    return "";
+  }
+
+  function detectNumericKeys(rows) {
+    if (!rows.length) {
+      return [];
+    }
+
+    const sample = rows.slice(0, Math.min(120, rows.length));
+    const counts = new Map();
+
+    for (const row of sample) {
+      if (!row || typeof row !== "object") {
+        continue;
+      }
+
+      for (const [key, value] of Object.entries(row)) {
+        const numeric = parseNum(value);
+        if (numeric === null) {
+          continue;
+        }
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    }
+
+    const threshold = Math.max(3, Math.floor(sample.length * 0.45));
+    return Array.from(counts.entries())
+      .filter(([, count]) => count >= threshold)
+      .map(([key]) => key);
+  }
+
+  function choosePrimaryNumericKey(rows) {
+    const numericKeys = detectNumericKeys(rows);
+    if (!numericKeys.length) {
+      return "";
+    }
+
+    const priority = ["value", "qty", "quantity", "amount", "forecast", "exports", "imports", "reexports", "ton", "mt", "usd"];
+    const notPreferred = ["id", "code", "year", "month", "release"];
+
+    const preferred = likelyKey(numericKeys, priority, notPreferred);
+    return preferred || numericKeys[0];
+  }
+
+  function findOperationId(preferredId, pathPart) {
+    if (state.client.getOperationById(preferredId)) {
+      return preferredId;
+    }
+
+    const match = state.client.operations.find((op) => op.pathTemplate.includes(pathPart));
+    return match?.id || "";
+  }
+
+  function optionFromAny(row, keyCandidates, fallbackPrefix) {
+    const keys = Object.keys(row || {});
+    const codeKey = likelyKey(keys, keyCandidates.code);
+    const nameKey = likelyKey(keys, keyCandidates.name);
+
+    const code = row?.[codeKey];
+    const name = row?.[nameKey];
+
+    if (code === undefined || code === null || String(code).trim() === "") {
+      return null;
+    }
+
+    const codeText = String(code).trim();
+    const nameText = name !== undefined && name !== null ? String(name).trim() : `${fallbackPrefix} ${codeText}`;
+
+    return {
+      value: codeText,
+      label: `${nameText} (${codeText})`
+    };
+  }
+
+  function uniqueOptions(options) {
+    const map = new Map();
+    for (const option of options) {
+      if (!option || !option.value) {
+        continue;
+      }
+      if (!map.has(option.value)) {
+        map.set(option.value, option);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  function fillSelect(selectElement, options) {
+    selectElement.innerHTML = options
+      .map((opt) => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`)
+      .join("");
+  }
+
+  async function runById(operationId, params = {}) {
+    if (!operationId) {
+      throw new Error("A required API operation is unavailable in Swagger.");
+    }
+    const result = await state.client.callOperation(operationId, params);
+    return result.response.data;
+  }
+
+  function buildBars(container, rows, labelKey, valueKey) {
+    if (!rows.length || !labelKey || !valueKey) {
+      container.innerHTML = `<div class="empty">No chartable data for this view.</div>`;
+      return;
+    }
+
+    const max = Math.max(...rows.map((row) => parseNum(row[valueKey]) || 0), 1);
+
+    container.innerHTML = rows.map((row) => {
+      const value = parseNum(row[valueKey]) || 0;
+      const ratio = Math.max(0, Math.min(1, value / max));
+      const label = row[labelKey] ?? "Unknown";
+
+      return `
+        <div class="bar-row">
+          <div class="bar-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(ratio * 100).toFixed(2)}%"></div></div>
+          <div class="bar-value">${escapeHtml(fmtNumber(value))}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function normalizeRows(data) {
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && typeof data === "object") {
+      if (Array.isArray(data.data)) {
+        return data.data;
+      }
+      return [data];
+    }
+
+    return [];
+  }
+
+  function aggregateBy(rows, groupKey, valueKey, topN = 10) {
+    const totals = new Map();
+
+    for (const row of rows) {
+      const group = String(row?.[groupKey] ?? "Unknown");
+      const value = parseNum(row?.[valueKey]);
+      if (value === null) {
+        continue;
+      }
+      totals.set(group, (totals.get(group) || 0) + value);
+    }
+
+    return Array.from(totals.entries())
+      .map(([group, value]) => ({ group, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, topN);
+  }
+
+  function getThresholds() {
+    return {
+      share: Math.max(0.01, (parseNum(el.shareThreshold.value) || 12) / 100),
+      ratio: Math.max(0.1, parseNum(el.ratioThreshold.value) || 1.15),
+      stale: Math.max(1, parseNum(el.staleThreshold.value) || 40),
+      buffer: Math.max(0, (parseNum(el.bufferThreshold.value) || 8) / 100)
+    };
+  }
+
+  function renderKpis(psd, trade, thresholds) {
+    const world = psd.worldTotal;
+    const focus = psd.focusCountryTotal;
+    const share = world > 0 ? focus / world : null;
+    const tradeBalance = trade.exportTotal - trade.importTotal;
+    const balanceClass = tradeBalance < 0 ? "bad" : "good";
+    const releaseLag = Number.isFinite(psd.releaseDaysAgo) ? psd.releaseDaysAgo : null;
+    const ratio = trade.exportTotal > 0 ? trade.importTotal / trade.exportTotal : null;
+    const shareClass = Number.isFinite(share) && share > thresholds.share ? "bad" : "good";
+    const ratioClass = Number.isFinite(ratio) && ratio > thresholds.ratio ? "bad" : "good";
+    const staleClass = releaseLag !== null && releaseLag > thresholds.stale ? "bad" : "good";
+
+    el.kpiContext.textContent = `${psd.commodityLabel}, ${psd.marketYear}`;
+
+    const kpis = [
+      { name: "World Forecast", value: fmtNumber(world), cls: "" },
+      { name: "Focus Country Forecast", value: fmtNumber(focus), cls: "" },
+      { name: "Country Share of World", value: fmtPercent(share), cls: shareClass },
+      { name: "Import/Export Ratio", value: Number.isFinite(ratio) ? ratio.toFixed(2) : "n/a", cls: ratioClass },
+      { name: "Partner Imports", value: fmtNumber(trade.importTotal), cls: "" },
+      { name: "Partner Exports", value: fmtNumber(trade.exportTotal), cls: "" },
+      { name: "Trade Balance", value: fmtNumber(tradeBalance), cls: balanceClass },
+      { name: "PSD Last Update", value: releaseLag === null ? "n/a" : `${releaseLag}d ago`, cls: staleClass }
+    ];
+
+    el.kpiGrid.innerHTML = kpis.map((kpi) => `
+      <div class="kpi">
+        <div class="name">${escapeHtml(kpi.name)}</div>
+        <div class="value ${escapeHtml(kpi.cls)}">${escapeHtml(kpi.value)}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderTradeTable(tradeRows, valueKey, commodityKey) {
+    if (!tradeRows.length || !valueKey) {
+      el.tradeTable.innerHTML = `<div class="empty">No trade rows were returned for the selected partner and period.</div>`;
+      return;
+    }
+
+    const aggregated = aggregateBy(tradeRows, commodityKey, valueKey, 20);
+
+    el.tradeTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Commodity</th>
+            <th>Aggregated Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${aggregated.map((row) => `
+            <tr>
+              <td>${escapeHtml(row.group)}</td>
+              <td>${escapeHtml(fmtNumber(row.value))}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderFreshnessTable(freshnessRows) {
+    if (!freshnessRows.length) {
+      el.freshnessTable.innerHTML = `<div class="empty">Release date endpoints returned no rows.</div>`;
+      return;
+    }
+
+    const columns = ["dataset", "latestDate", "rowCount"];
+
+    el.freshnessTable.innerHTML = `
+      <table>
+        <thead><tr>${columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${freshnessRows.map((row) => `
+            <tr>
+              <td>${escapeHtml(row.dataset)}</td>
+              <td>${escapeHtml(row.latestDate || "n/a")}</td>
+              <td>${escapeHtml(String(row.rowCount))}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function computeDaysAgo(dateText) {
+    const timestamp = Date.parse(dateText || "");
+    if (!Number.isFinite(timestamp)) {
+      return null;
+    }
+    const days = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60 * 24));
+    return Math.max(days, 0);
+  }
+
+  function findLatestDate(rows) {
+    const values = [];
+    for (const row of rows) {
+      for (const value of Object.values(row || {})) {
+        const text = String(value ?? "").trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(text) || /^\d{1,2}\/\d{1,2}\/\d{4}/.test(text)) {
+          values.push(text);
+        }
+      }
+    }
+    values.sort((a, b) => Date.parse(b) - Date.parse(a));
+    return values[0] || "";
+  }
+
+  function renderPlanTable(psd, trade, thresholds) {
+    const ratio = trade.exportTotal > 0 ? trade.importTotal / trade.exportTotal : null;
+    const ratioTarget = thresholds.ratio;
+    const ratioGap = Number.isFinite(ratio) ? ratio - ratioTarget : null;
+
+    const shareTarget = thresholds.share;
+    const shareGap = psd.focusShare - shareTarget;
+
+    const staleTarget = thresholds.stale;
+    const staleGap = Number.isFinite(psd.releaseDaysAgo) ? psd.releaseDaysAgo - staleTarget : null;
+
+    const rows = [
+      {
+        metric: "Country Concentration",
+        actual: fmtPercent(psd.focusShare),
+        plan: `<= ${fmtPercent(shareTarget)}`,
+        gap: Number.isFinite(shareGap) ? `${shareGap > 0 ? "+" : ""}${(shareGap * 100).toFixed(1)} pp` : "n/a",
+        status: shareGap <= 0 ? "On Plan" : "Risk"
+      },
+      {
+        metric: "Import/Export Ratio",
+        actual: Number.isFinite(ratio) ? ratio.toFixed(2) : "n/a",
+        plan: `<= ${ratioTarget.toFixed(2)}`,
+        gap: Number.isFinite(ratioGap) ? `${ratioGap > 0 ? "+" : ""}${ratioGap.toFixed(2)}` : "n/a",
+        status: Number.isFinite(ratioGap) && ratioGap <= 0 ? "On Plan" : "Risk"
+      },
+      {
+        metric: "Data Freshness",
+        actual: Number.isFinite(psd.releaseDaysAgo) ? `${psd.releaseDaysAgo}d` : "n/a",
+        plan: `<= ${staleTarget}d`,
+        gap: Number.isFinite(staleGap) ? `${staleGap > 0 ? "+" : ""}${staleGap}d` : "n/a",
+        status: Number.isFinite(staleGap) && staleGap <= 0 ? "On Plan" : "Watch"
+      }
+    ];
+
+    el.planNote.textContent = `Plan buffer target: ${fmtPercent(thresholds.buffer)}. Use this table to monitor timing and risk movement vs your baseline.`;
+    el.planTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Actual</th>
+            <th>Plan</th>
+            <th>Gap</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr>
+              <td>${escapeHtml(row.metric)}</td>
+              <td>${escapeHtml(row.actual)}</td>
+              <td>${escapeHtml(row.plan)}</td>
+              <td>${escapeHtml(row.gap)}</td>
+              <td>${escapeHtml(row.status)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function buildInsights(psd, trade, thresholds) {
+    const notes = [];
+
+    if (Number.isFinite(psd.focusShare) && psd.focusShare > thresholds.share) {
+      notes.push(`Concentration risk: ${psd.countryLabel} accounts for ${fmtPercent(psd.focusShare)} of world forecast volume for ${psd.commodityLabel}.`);
+    } else {
+      notes.push(`Diversification signal: ${psd.countryLabel} share is ${fmtPercent(psd.focusShare)}; exposure is spread beyond one market.`);
+    }
+
+    if (trade.exportTotal > 0) {
+      const ratio = trade.importTotal / trade.exportTotal;
+      if (ratio > thresholds.ratio) {
+        notes.push(`Trade dependency watch: imports from ${trade.partnerLabel} are ${ratio.toFixed(2)}x exports in ${trade.tradeYear}-${String(trade.tradeMonth).padStart(2, "0")}.`);
+      } else {
+        notes.push(`Balanced trade signal: import/export ratio vs ${trade.partnerLabel} is ${ratio.toFixed(2)} in the selected month.`);
+      }
+    }
+
+    if (Number.isFinite(psd.releaseDaysAgo) && psd.releaseDaysAgo > thresholds.stale) {
+      notes.push(`Forecast staleness: PSD release data is ${psd.releaseDaysAgo} days old. Consider validating with internal demand and shipping updates.`);
+    } else {
+      notes.push(`Data freshness is acceptable for tactical planning; continue weekly refresh checks.`);
+    }
+
+    if (psd.topAttribute && psd.topAttribute.value > 0) {
+      notes.push(`Attribute dominance: ${psd.topAttribute.name} is the largest component in the selected outlook, useful for inventory posture and procurement strategy.`);
+    }
+
+    if (Number.isFinite(psd.focusShare) && Number.isFinite(trade.exportTotal) && trade.exportTotal > 0) {
+      const coverageScore = Math.max(0, thresholds.buffer - Math.max(0, psd.focusShare - thresholds.share));
+      notes.push(`Timing readiness score: ${fmtPercent(coverageScore)} against your ${fmtPercent(thresholds.buffer)} plan buffer target.`);
+    }
+
+    el.insightsList.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+  }
+
+  async function loadReferenceData() {
+    const [psdCommoditiesRaw, psdCountriesRaw, gatsCountriesRaw] = await Promise.all([
+      runById(state.opIds.psdCommodities),
+      runById(state.opIds.psdCountries),
+      runById(state.opIds.gatsCountries)
+    ]);
+
+    state.refs.psdCommodities = toArray(psdCommoditiesRaw);
+    state.refs.psdCountries = toArray(psdCountriesRaw);
+    state.refs.gatsCountries = toArray(gatsCountriesRaw);
+
+    const commodityOptions = uniqueOptions(state.refs.psdCommodities.map((row) => optionFromAny(row, {
+      code: ["commoditycode", "commodity_code", "code"],
+      name: ["commodityname", "commodity_name", "commoditydescription", "commodity_description", "name", "description"]
+    }, "Commodity")));
+
+    const psdCountryOptions = uniqueOptions(state.refs.psdCountries.map((row) => optionFromAny(row, {
+      code: ["countrycode", "country_code", "code"],
+      name: ["countryname", "country_name", "name"]
+    }, "Country")));
+
+    const gatsCountryOptions = uniqueOptions(state.refs.gatsCountries.map((row) => optionFromAny(row, {
+      code: ["countrycode", "country_code", "partnercode", "partner_code", "code", "iso", "iso2"],
+      name: ["countryname", "country_name", "name"]
+    }, "Partner")));
+
+    fillSelect(el.commoditySelect, commodityOptions);
+    fillSelect(el.countrySelect, psdCountryOptions);
+    fillSelect(el.partnerSelect, gatsCountryOptions);
+
+    const defaultCommodity =
+      commodityOptions.find((opt) => /coffee/i.test(opt.label)) ||
+      commodityOptions.find((opt) => /banana/i.test(opt.label)) ||
+      commodityOptions[0];
+    const defaultCountry =
+      psdCountryOptions.find((opt) => /brazil/i.test(opt.label)) ||
+      psdCountryOptions.find((opt) => /colombia|ecuador|guatemala|honduras|peru|mexico/i.test(opt.label)) ||
+      psdCountryOptions[0];
+    const defaultPartner =
+      gatsCountryOptions.find((opt) => /colombia/i.test(opt.label)) ||
+      gatsCountryOptions.find((opt) => /ecuador|guatemala|honduras|peru|mexico|brazil/i.test(opt.label)) ||
+      gatsCountryOptions[0];
+
+    if (defaultCommodity) {
+      el.commoditySelect.value = defaultCommodity.value;
+    }
+    if (defaultCountry) {
+      el.countrySelect.value = defaultCountry.value;
+    }
+    if (defaultPartner) {
+      el.partnerSelect.value = defaultPartner.value;
+    }
+
+    const today = new Date();
+    el.marketYear.value = String(today.getFullYear() - 1);
+    el.tradeYear.value = String(today.getFullYear() - 1);
+    el.tradeMonth.value = String(Math.max(1, today.getMonth()));
+    el.shareThreshold.value = "15";
+    el.ratioThreshold.value = "1.20";
+    el.staleThreshold.value = "45";
+    el.bufferThreshold.value = "8";
+  }
+
+  function labelForCode(options, code) {
+    const hit = options.find((option) => option.value === code);
+    return hit ? hit.label : code;
+  }
+
+  async function loadPsdView(params) {
+    const [worldRaw, focusRaw, allRaw, releaseRaw] = await Promise.all([
+      runById(state.opIds.psdWorldByYear, {
+        commodityCode: params.commodityCode,
+        marketYear: params.marketYear
+      }),
+      runById(state.opIds.psdCountryByYear, {
+        commodityCode: params.commodityCode,
+        countryCode: params.countryCode,
+        marketYear: params.marketYear
+      }),
+      runById(state.opIds.psdAllCountriesByYear, {
+        commodityCode: params.commodityCode,
+        marketYear: params.marketYear
+      }),
+      runById(state.opIds.psdReleaseDates, {
+        commodityCode: params.commodityCode
+      })
+    ]);
+
+    const worldRows = normalizeRows(worldRaw);
+    const focusRows = normalizeRows(focusRaw);
+    const allRows = normalizeRows(allRaw);
+    const releaseRows = normalizeRows(releaseRaw);
+
+    const numericKey = choosePrimaryNumericKey(allRows.length ? allRows : worldRows);
+
+    const countryKey = likelyKey(Object.keys(allRows[0] || {}), ["countryname", "country_name", "country", "countrycode", "country_code"]);
+    const attrKey = likelyKey(Object.keys(allRows[0] || {}), ["attributename", "attribute_name", "attribute", "commodityattribute", "category"]);
+
+    const worldTotal = worldRows.reduce((sum, row) => sum + (parseNum(row[numericKey]) || 0), 0);
+    const focusCountryTotal = focusRows.reduce((sum, row) => sum + (parseNum(row[numericKey]) || 0), 0);
+
+    const topCountries = countryKey && numericKey
+      ? aggregateBy(allRows, countryKey, numericKey, 10).map((row) => ({ name: row.group, value: row.value }))
+      : [];
+
+    const attributeMix = attrKey && numericKey
+      ? aggregateBy(allRows, attrKey, numericKey, 10).map((row) => ({ name: row.group, value: row.value }))
+      : [];
+
+    const latestPsdDate = findLatestDate(releaseRows);
+
+    return {
+      rows: allRows,
+      worldTotal,
+      focusCountryTotal,
+      focusShare: worldTotal > 0 ? focusCountryTotal / worldTotal : 0,
+      topCountries,
+      attributeMix,
+      topAttribute: attributeMix[0] ? { name: attributeMix[0].name, value: attributeMix[0].value } : null,
+      releaseDaysAgo: computeDaysAgo(latestPsdDate),
+      latestPsdDate,
+      marketYear: params.marketYear,
+      commodityLabel: labelForCode(Array.from(el.commoditySelect.options).map((o) => ({ value: o.value, label: o.text })), params.commodityCode),
+      countryLabel: labelForCode(Array.from(el.countrySelect.options).map((o) => ({ value: o.value, label: o.text })), params.countryCode)
+    };
+  }
+
+  async function loadTradeView(params) {
+    const [importsRaw, exportsRaw] = await Promise.all([
+      runById(state.opIds.gatsCensusImports, {
+        partnerCode: params.partnerCode,
+        year: params.tradeYear,
+        month: params.tradeMonth
+      }),
+      runById(state.opIds.gatsCensusExports, {
+        partnerCode: params.partnerCode,
+        year: params.tradeYear,
+        month: params.tradeMonth
+      })
+    ]);
+
+    const importRows = normalizeRows(importsRaw);
+    const exportRows = normalizeRows(exportsRaw);
+
+    const merged = [...importRows, ...exportRows];
+    const numericKey = choosePrimaryNumericKey(merged);
+
+    const commodityKey = likelyKey(Object.keys(merged[0] || {}), ["commoditydescription", "commodity_name", "commodity", "hs10", "hs6", "code"], ["country", "partner"]);
+
+    const importTotal = importRows.reduce((sum, row) => sum + (parseNum(row[numericKey]) || 0), 0);
+    const exportTotal = exportRows.reduce((sum, row) => sum + (parseNum(row[numericKey]) || 0), 0);
+
+    return {
+      importRows,
+      exportRows,
+      merged,
+      numericKey,
+      commodityKey,
+      importTotal,
+      exportTotal,
+      tradeYear: Number(params.tradeYear),
+      tradeMonth: Number(params.tradeMonth),
+      partnerLabel: labelForCode(Array.from(el.partnerSelect.options).map((o) => ({ value: o.value, label: o.text })), params.partnerCode)
+    };
+  }
+
+  async function loadFreshnessRows(commodityCode) {
+    const [censusImpReleaseRaw, censusExpReleaseRaw, unTradeImpReleaseRaw, unTradeExpReleaseRaw] = await Promise.all([
+      runById(state.opIds.gatsCensusImportRelease),
+      runById(state.opIds.gatsCensusExportRelease),
+      runById(state.opIds.gatsUnTradeImportRelease),
+      runById(state.opIds.gatsUnTradeExportRelease)
+    ]);
+
+    const datasets = [
+      { dataset: "PSD", rows: normalizeRows(await runById(state.opIds.psdReleaseDates, { commodityCode })) },
+      { dataset: "GATS Census Imports", rows: normalizeRows(censusImpReleaseRaw) },
+      { dataset: "GATS Census Exports", rows: normalizeRows(censusExpReleaseRaw) },
+      { dataset: "GATS UNTrade Imports", rows: normalizeRows(unTradeImpReleaseRaw) },
+      { dataset: "GATS UNTrade Exports", rows: normalizeRows(unTradeExpReleaseRaw) }
+    ];
+
+    return datasets.map((item) => ({
+      dataset: item.dataset,
+      latestDate: findLatestDate(item.rows),
+      rowCount: item.rows.length
+    }));
+  }
+
+  function renderAll() {
+    const psd = state.data.psd;
+    const trade = state.data.trade;
+    const freshness = state.data.freshness;
+    const thresholds = getThresholds();
+
+    renderKpis(psd, trade, thresholds);
+
+    el.exposureNote.textContent = `Top countries by aggregated forecast metric (${psd.marketYear})`;
+    buildBars(el.exposureBars, psd.topCountries.map((row) => ({ label: row.name, value: row.value })), "label", "value");
+
+    el.attributeNote.textContent = "Largest forecast attributes in selected commodity/year";
+    buildBars(el.attributeBars, psd.attributeMix.map((row) => ({ label: row.name, value: row.value })), "label", "value");
+
+    el.tradeNote.textContent = `${trade.partnerLabel} - ${trade.tradeYear}/${String(trade.tradeMonth).padStart(2, "0")}`;
+    renderTradeTable(trade.merged, trade.numericKey, trade.commodityKey || "commodity");
+
+    buildInsights(psd, trade, thresholds);
+    renderPlanTable(psd, trade, thresholds);
+    renderFreshnessTable(freshness);
+  }
+
+  function scenarioFromUi() {
+    return {
+      commodityCode: el.commoditySelect.value,
+      countryCode: el.countrySelect.value,
+      marketYear: String(el.marketYear.value || ""),
+      partnerCode: el.partnerSelect.value,
+      tradeYear: String(el.tradeYear.value || ""),
+      tradeMonth: String(el.tradeMonth.value || ""),
+      thresholds: {
+        sharePct: String(el.shareThreshold.value || ""),
+        ratio: String(el.ratioThreshold.value || ""),
+        staleDays: String(el.staleThreshold.value || ""),
+        planBufferPct: String(el.bufferThreshold.value || "")
+      }
+    };
+  }
+
+  function applyScenarioFromQuery() {
+    const query = new URLSearchParams(window.location.search);
+
+    const setIfPresent = (element, key) => {
+      const value = query.get(key);
+      if (value !== null && value !== "") {
+        element.value = value;
+      }
+    };
+
+    setIfPresent(el.commoditySelect, "commodityCode");
+    setIfPresent(el.countrySelect, "countryCode");
+    setIfPresent(el.marketYear, "marketYear");
+    setIfPresent(el.partnerSelect, "partnerCode");
+    setIfPresent(el.tradeYear, "tradeYear");
+    setIfPresent(el.tradeMonth, "tradeMonth");
+    setIfPresent(el.shareThreshold, "sharePct");
+    setIfPresent(el.ratioThreshold, "ratio");
+    setIfPresent(el.staleThreshold, "staleDays");
+    setIfPresent(el.bufferThreshold, "planBufferPct");
+  }
+
+  async function refreshDashboard() {
+    const params = scenarioFromUi();
+    setStatus("Refreshing PSD, trade, and release datasets...");
+    el.refreshBtn.disabled = true;
+
+    try {
+      const [psd, trade, freshness] = await Promise.all([
+        loadPsdView(params),
+        loadTradeView(params),
+        loadFreshnessRows(params.commodityCode)
+      ]);
+
+      state.data.psd = psd;
+      state.data.trade = trade;
+      state.data.freshness = freshness;
+      renderAll();
+
+      setStatus("Dashboard refreshed successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setStatus(message, true);
+    } finally {
+      el.refreshBtn.disabled = false;
+    }
+  }
+
+  async function initialize() {
+    setStatus("Loading Swagger spec...");
+
+    await state.client.loadSpec();
+
+    state.opIds = {
+      psdCommodities: findOperationId("PSDData_GetCommodities", "/api/psd/commodities"),
+      psdCountries: findOperationId("PSDData_GetCountries", "/api/psd/countries"),
+      gatsCountries: findOperationId("GATSData_GetCountries", "/api/gats/countries"),
+      psdAllCountriesByYear: findOperationId("PSDData_GetCommodityDataByYear", "/api/psd/commodity/{commodityCode}/country/all/year/{marketYear}"),
+      psdCountryByYear: findOperationId("PSDData_GetCountryCommodityDataByYear", "/api/psd/commodity/{commodityCode}/country/{countryCode}/year/{marketYear}"),
+      psdWorldByYear: findOperationId("PSDData_GetWorldCommodityDataByYear", "/api/psd/commodity/{commodityCode}/world/year/{marketYear}"),
+      psdReleaseDates: findOperationId("PSDData_GetDataReleaseInfo", "/api/psd/commodity/{commodityCode}/dataReleaseDates"),
+      gatsCensusImports: findOperationId("GATSData_GetCensusImport", "/api/gats/censusImports/partnerCode/{partnerCode}/year/{year}/month/{month}"),
+      gatsCensusExports: findOperationId("GATSData_GetCensusExports", "/api/gats/censusExports/partnerCode/{partnerCode}/year/{year}/month/{month}"),
+      gatsCensusImportRelease: findOperationId("GATSData_GetCensusImportDataReleaseInfo", "/api/gats/census/data/imports/dataReleaseDates"),
+      gatsCensusExportRelease: findOperationId("GATSData_GetCensusExportDataReleaseInfo", "/api/gats/census/data/exports/dataReleaseDates"),
+      gatsUnTradeImportRelease: findOperationId("GATSData_GetUNTradeImportDataReleaseInfo", "/api/gats/UNTrade/data/imports/dataReleaseDates"),
+      gatsUnTradeExportRelease: findOperationId("GATSData_GetUNTradeExportDataReleaseInfo", "/api/gats/UNTrade/data/exports/dataReleaseDates")
+    };
+
+    await loadReferenceData();
+    applyScenarioFromQuery();
+    await refreshDashboard();
+  }
+
+  el.refreshBtn.addEventListener("click", refreshDashboard);
+
+  el.copyParamsBtn.addEventListener("click", async () => {
+    const params = scenarioFromUi();
+    await navigator.clipboard.writeText(JSON.stringify(params, null, 2));
+    setStatus("Scenario copied to clipboard.");
+  });
+
+  initialize().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    setStatus(`Initialization failed: ${message}`, true);
+  });
+</script>
+</body>
+</html>

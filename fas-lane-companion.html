@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAS Lane Companion - Customs District Risk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f6f4;
+    --ink: #15343a;
+    --ink-soft: #486167;
+    --panel: #fcfffd;
+    --line: #cbdad3;
+    --line-strong: #95b8ab;
+    --accent: #0f766e;
+    --accent-soft: #daf1ec;
+    --warn: #b45309;
+    --good: #047857;
+    --risk: #b91c1c;
+    --mono: "IBM Plex Mono", monospace;
+    --sans: "Barlow", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 90% 5%, rgba(15, 118, 110, 0.18), transparent 34%),
+      radial-gradient(circle at 8% 8%, rgba(180, 83, 9, 0.14), transparent 28%),
+      linear-gradient(180deg, #f1f6f2, #ebf1ee);
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(241, 246, 242, 0.92);
+    backdrop-filter: blur(6px);
+  }
+
+  .brand {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 2px 8px;
+    background: var(--accent-soft);
+    color: #0f3f3a;
+  }
+
+  .meta {
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .meta a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(290px, 340px) 1fr;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  @media (max-width: 1020px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(252, 255, 253, 0.97), rgba(248, 253, 251, 0.9));
+    box-shadow: 0 12px 26px rgba(20, 36, 44, 0.09);
+  }
+
+  .controls {
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    min-height: calc(100vh - 84px);
+    align-content: start;
+  }
+
+  .main {
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+
+  .group {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px;
+    display: grid;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .group-title {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  label {
+    display: grid;
+    gap: 4px;
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  input, select {
+    font: inherit;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 7px 9px;
+    color: var(--ink);
+    background: #fbfffd;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: #fbfffd;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+
+  button.primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: #efffff;
+    font-weight: 700;
+  }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .status.error { color: var(--risk); }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+  }
+
+  .kpi {
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 8px;
+    background: #fafdff;
+  }
+
+  .kpi .name {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .kpi .value {
+    font-family: var(--mono);
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  .value.good { color: var(--good); }
+  .value.warn { color: var(--warn); }
+  .value.risk { color: var(--risk); }
+
+  .panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .small-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 920px) {
+    .split {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .bars {
+    display: grid;
+    gap: 7px;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 180px) 1fr minmax(72px, 90px);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bar-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  .bar-track {
+    height: 10px;
+    background: #e4efe9;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0f766e, #22c55e);
+  }
+
+  .bar-value {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .table-wrap {
+    max-height: 340px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fcfffd;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
+    font-size: 12px;
+  }
+
+  th, td {
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    padding: 7px;
+    vertical-align: top;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #edf5f1;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+  }
+
+  .empty {
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+    background: #f8fffc;
+    color: var(--ink-soft);
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .insights {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 5px;
+    color: #20444a;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="pill">USDA FAS</span>
+    Lane Exposure Companion
+  </div>
+  <div class="meta">
+    Customs district imports vs exports for timing risk<br>
+    <a href="/fas-plan-builder">Plan builder</a> | <a href="/fas-supply-chain-dashboard">Back to primary dashboard</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="card controls">
+    <div class="group">
+      <div class="group-title">Trade Lane Scope</div>
+      <label>Partner Country
+        <select id="partner-select"></select>
+      </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <label>Year
+          <input id="year-input" type="number" min="1960" max="2100">
+        </label>
+        <label>Month
+          <input id="month-input" type="number" min="1" max="12">
+        </label>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Risk Thresholds</div>
+      <label>District Concentration Alert (%)
+        <input id="district-threshold" type="number" min="1" max="100" step="0.5">
+      </label>
+      <label>Flow Imbalance Alert (%)
+        <input id="imbalance-threshold" type="number" min="1" max="400" step="1">
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="primary" id="refresh-btn">Refresh Lanes</button>
+      <button id="copy-btn">Copy Scenario</button>
+    </div>
+
+    <div class="status" id="status">Loading metadata...</div>
+  </aside>
+
+  <main class="card main">
+    <section>
+      <div class="panel-title">Lane Risk KPIs <span class="small-note" id="kpi-note"></span></div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+    </section>
+
+    <section class="split">
+      <div class="card" style="padding:10px;box-shadow:none;">
+        <div class="panel-title">Top Import Districts</div>
+        <div class="bars" id="import-bars" style="margin-top:8px;"></div>
+      </div>
+      <div class="card" style="padding:10px;box-shadow:none;">
+        <div class="panel-title">Top Export Districts</div>
+        <div class="bars" id="export-bars" style="margin-top:8px;"></div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="card" style="padding:10px;box-shadow:none;">
+        <div class="panel-title">District Delta Table</div>
+        <div class="small-note">Side-by-side import/export comparison to identify bottleneck lanes.</div>
+        <div class="table-wrap" id="delta-table"></div>
+      </div>
+      <div class="card" style="padding:10px;box-shadow:none;">
+        <div class="panel-title">Timing Signals</div>
+        <ul class="insights" id="insights"></ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script type="module">
+  import { createFASClient } from "./fas-api-client.js";
+
+  const state = {
+    client: createFASClient(),
+    opIds: {},
+    refs: {
+      countries: []
+    },
+    data: {
+      imports: [],
+      exports: []
+    }
+  };
+
+  const el = {
+    partnerSelect: document.getElementById("partner-select"),
+    yearInput: document.getElementById("year-input"),
+    monthInput: document.getElementById("month-input"),
+    districtThreshold: document.getElementById("district-threshold"),
+    imbalanceThreshold: document.getElementById("imbalance-threshold"),
+    refreshBtn: document.getElementById("refresh-btn"),
+    copyBtn: document.getElementById("copy-btn"),
+    status: document.getElementById("status"),
+    kpiGrid: document.getElementById("kpi-grid"),
+    kpiNote: document.getElementById("kpi-note"),
+    importBars: document.getElementById("import-bars"),
+    exportBars: document.getElementById("export-bars"),
+    deltaTable: document.getElementById("delta-table"),
+    insights: document.getElementById("insights")
+  };
+
+  function setStatus(message, isError = false) {
+    el.status.textContent = message;
+    el.status.className = isError ? "status error" : "status";
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function parseNum(value) {
+    const parsed = Number(String(value ?? "").replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function fmtNumber(value, digits = 0) {
+    if (!Number.isFinite(value)) {
+      return "n/a";
+    }
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  }
+
+  function fmtPercent(value) {
+    if (!Number.isFinite(value)) {
+      return "n/a";
+    }
+    return `${(value * 100).toFixed(1)}%`;
+  }
+
+  function likelyKey(keys, includePatterns, excludePatterns = []) {
+    for (const key of keys) {
+      const lowered = key.toLowerCase();
+      if (excludePatterns.some((pattern) => lowered.includes(pattern))) {
+        continue;
+      }
+      if (includePatterns.some((pattern) => lowered.includes(pattern))) {
+        return key;
+      }
+    }
+    return "";
+  }
+
+  function normalizeRows(data) {
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && typeof data === "object") {
+      if (Array.isArray(data.data)) {
+        return data.data;
+      }
+      return [data];
+    }
+    return [];
+  }
+
+  function chooseValueKey(rows) {
+    if (!rows.length) {
+      return "";
+    }
+
+    const keys = Object.keys(rows[0]);
+    const priority = ["value", "amount", "qty", "quantity", "imports", "exports", "dollar", "usd", "weight", "mt"];
+    const notPreferred = ["id", "code", "year", "month"];
+    const winner = likelyKey(keys, priority, notPreferred);
+    if (winner) {
+      return winner;
+    }
+
+    for (const key of keys) {
+      const numericCount = rows.slice(0, 80).reduce((count, row) => count + (parseNum(row[key]) === null ? 0 : 1), 0);
+      if (numericCount > 20) {
+        return key;
+      }
+    }
+
+    return "";
+  }
+
+  function aggregateDistricts(rows, districtKey, valueKey) {
+    const totals = new Map();
+
+    for (const row of rows) {
+      const district = String(row?.[districtKey] ?? "Unknown District");
+      const value = parseNum(row?.[valueKey]);
+      if (value === null) {
+        continue;
+      }
+      totals.set(district, (totals.get(district) || 0) + value);
+    }
+
+    return Array.from(totals.entries())
+      .map(([district, value]) => ({ district, value }))
+      .sort((a, b) => b.value - a.value);
+  }
+
+  function buildBars(container, rows) {
+    if (!rows.length) {
+      container.innerHTML = `<div class="empty">No lane rows found for this scope.</div>`;
+      return;
+    }
+
+    const max = Math.max(...rows.map((row) => row.value), 1);
+    container.innerHTML = rows.slice(0, 12).map((row) => {
+      const pct = Math.max(0, Math.min(1, row.value / max));
+      return `
+        <div class="bar-row">
+          <div class="bar-label" title="${escapeHtml(row.district)}">${escapeHtml(row.district)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(pct * 100).toFixed(2)}%"></div></div>
+          <div class="bar-value">${escapeHtml(fmtNumber(row.value))}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function findOperationId(preferredId, pathPart) {
+    if (state.client.getOperationById(preferredId)) {
+      return preferredId;
+    }
+
+    const match = state.client.operations.find((op) => op.pathTemplate.includes(pathPart));
+    return match?.id || "";
+  }
+
+  async function runById(operationId, params = {}) {
+    if (!operationId) {
+      throw new Error("A required operation is missing from the Swagger document.");
+    }
+    const result = await state.client.callOperation(operationId, params);
+    return result.response.data;
+  }
+
+  function setCountryOptions(rows) {
+    const codeKey = likelyKey(Object.keys(rows[0] || {}), ["countrycode", "country_code", "partnercode", "code", "iso"]);
+    const nameKey = likelyKey(Object.keys(rows[0] || {}), ["countryname", "country_name", "name"]);
+
+    const options = rows
+      .map((row) => {
+        const code = row?.[codeKey];
+        const name = row?.[nameKey];
+        if (!code) {
+          return null;
+        }
+        const value = String(code).trim();
+        const label = name ? `${String(name).trim()} (${value})` : value;
+        return { value, label };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    const unique = [];
+    const seen = new Set();
+    for (const option of options) {
+      if (seen.has(option.value)) {
+        continue;
+      }
+      seen.add(option.value);
+      unique.push(option);
+    }
+
+    el.partnerSelect.innerHTML = unique
+      .map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`)
+      .join("");
+
+    const latamDefault = unique.find((option) => /colombia|ecuador|guatemala|honduras|peru|mexico|brazil|costa rica/i.test(option.label));
+    if (latamDefault) {
+      el.partnerSelect.value = latamDefault.value;
+    }
+  }
+
+  function scenario() {
+    return {
+      partnerCode: el.partnerSelect.value,
+      year: String(el.yearInput.value || ""),
+      month: String(el.monthInput.value || ""),
+      districtThreshold: (parseNum(el.districtThreshold.value) || 25) / 100,
+      imbalanceThreshold: (parseNum(el.imbalanceThreshold.value) || 35) / 100
+    };
+  }
+
+  function applyScenarioFromQuery() {
+    const query = new URLSearchParams(window.location.search);
+
+    const setIfPresent = (element, key) => {
+      const value = query.get(key);
+      if (value !== null && value !== "") {
+        element.value = value;
+      }
+    };
+
+    setIfPresent(el.partnerSelect, "partnerCode");
+    setIfPresent(el.yearInput, "tradeYear");
+    setIfPresent(el.monthInput, "tradeMonth");
+    setIfPresent(el.districtThreshold, "districtThresholdPct");
+    setIfPresent(el.imbalanceThreshold, "imbalanceThresholdPct");
+  }
+
+  function mergeDistrictDeltas(importTotals, exportTotals) {
+    const all = new Set([...importTotals.map((row) => row.district), ...exportTotals.map((row) => row.district)]);
+
+    const importMap = new Map(importTotals.map((row) => [row.district, row.value]));
+    const exportMap = new Map(exportTotals.map((row) => [row.district, row.value]));
+
+    const rows = [];
+    for (const district of all) {
+      const imports = importMap.get(district) || 0;
+      const exports = exportMap.get(district) || 0;
+      const delta = exports - imports;
+      const base = Math.max(imports, exports, 1);
+      const deltaPct = Math.abs(delta) / base;
+      rows.push({ district, imports, exports, delta, deltaPct });
+    }
+
+    return rows.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  }
+
+  function renderDeltaTable(rows, threshold) {
+    if (!rows.length) {
+      el.deltaTable.innerHTML = `<div class="empty">No district-level records available for this partner and period.</div>`;
+      return;
+    }
+
+    el.deltaTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>District</th>
+            <th>Imports</th>
+            <th>Exports</th>
+            <th>Delta</th>
+            <th>Delta %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.slice(0, 40).map((row) => {
+            const status = row.deltaPct > threshold ? "Watch" : "Stable";
+            return `
+              <tr>
+                <td>${escapeHtml(row.district)}</td>
+                <td>${escapeHtml(fmtNumber(row.imports))}</td>
+                <td>${escapeHtml(fmtNumber(row.exports))}</td>
+                <td>${escapeHtml(fmtNumber(row.delta))}</td>
+                <td>${escapeHtml(fmtPercent(row.deltaPct))}</td>
+                <td>${escapeHtml(status)}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderKpis(importTotals, exportTotals, deltaRows, scope) {
+    const importTotal = importTotals.reduce((sum, row) => sum + row.value, 0);
+    const exportTotal = exportTotals.reduce((sum, row) => sum + row.value, 0);
+    const largestImportShare = importTotals.length ? importTotals[0].value / Math.max(importTotal, 1) : 0;
+    const largestExportShare = exportTotals.length ? exportTotals[0].value / Math.max(exportTotal, 1) : 0;
+    const topDelta = deltaRows[0]?.deltaPct || 0;
+
+    const clsImport = largestImportShare > scope.districtThreshold ? "risk" : "good";
+    const clsExport = largestExportShare > scope.districtThreshold ? "warn" : "good";
+    const clsDelta = topDelta > scope.imbalanceThreshold ? "risk" : "good";
+
+    el.kpiNote.textContent = `${scope.partnerCode} ${scope.year}/${String(scope.month).padStart(2, "0")}`;
+
+    const kpis = [
+      { name: "Total Imports", value: fmtNumber(importTotal), cls: "" },
+      { name: "Total Exports", value: fmtNumber(exportTotal), cls: "" },
+      { name: "Top Import District Share", value: fmtPercent(largestImportShare), cls: clsImport },
+      { name: "Top Export District Share", value: fmtPercent(largestExportShare), cls: clsExport },
+      { name: "Largest District Delta %", value: fmtPercent(topDelta), cls: clsDelta }
+    ];
+
+    el.kpiGrid.innerHTML = kpis.map((kpi) => `
+      <div class="kpi">
+        <div class="name">${escapeHtml(kpi.name)}</div>
+        <div class="value ${escapeHtml(kpi.cls)}">${escapeHtml(kpi.value)}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderInsights(importTotals, exportTotals, deltaRows, scope) {
+    const notes = [];
+
+    const topImport = importTotals[0];
+    const topExport = exportTotals[0];
+
+    if (topImport) {
+      const share = topImport.value / Math.max(importTotals.reduce((sum, row) => sum + row.value, 0), 1);
+      if (share > scope.districtThreshold) {
+        notes.push(`Lane concentration risk: ${topImport.district} carries ${fmtPercent(share)} of imports, above your ${fmtPercent(scope.districtThreshold)} threshold.`);
+      } else {
+        notes.push(`Import lanes are reasonably distributed relative to your concentration threshold.`);
+      }
+    }
+
+    if (topExport) {
+      const share = topExport.value / Math.max(exportTotals.reduce((sum, row) => sum + row.value, 0), 1);
+      notes.push(`Top export district: ${topExport.district} at ${fmtPercent(share)} share.`);
+    }
+
+    const watchCount = deltaRows.filter((row) => row.deltaPct > scope.imbalanceThreshold).length;
+    if (watchCount > 0) {
+      notes.push(`Timing mismatch detected in ${watchCount} district(s); consider rebalancing booking and inland routing.`);
+    } else {
+      notes.push(`Import/export timing by district is within your current tolerance.`);
+    }
+
+    el.insights.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+  }
+
+  async function refresh() {
+    const scope = scenario();
+    setStatus("Loading customs district imports/exports...");
+    el.refreshBtn.disabled = true;
+
+    try {
+      const [importsRaw, exportsRaw] = await Promise.all([
+        runById(state.opIds.customsImports, {
+          partnerCode: scope.partnerCode,
+          year: scope.year,
+          month: scope.month
+        }),
+        runById(state.opIds.customsExports, {
+          partnerCode: scope.partnerCode,
+          year: scope.year,
+          month: scope.month
+        })
+      ]);
+
+      const importRows = normalizeRows(importsRaw);
+      const exportRows = normalizeRows(exportsRaw);
+      state.data.imports = importRows;
+      state.data.exports = exportRows;
+
+      const mergedRows = [...importRows, ...exportRows];
+      const districtKey = likelyKey(Object.keys(mergedRows[0] || {}), ["customsdistrictname", "districtname", "customsdistrict", "district"], ["code"]);
+      const valueKey = chooseValueKey(mergedRows);
+
+      const importTotals = aggregateDistricts(importRows, districtKey || "district", valueKey || "value");
+      const exportTotals = aggregateDistricts(exportRows, districtKey || "district", valueKey || "value");
+      const deltaRows = mergeDistrictDeltas(importTotals, exportTotals);
+
+      buildBars(el.importBars, importTotals);
+      buildBars(el.exportBars, exportTotals);
+      renderKpis(importTotals, exportTotals, deltaRows, scope);
+      renderDeltaTable(deltaRows, scope.imbalanceThreshold);
+      renderInsights(importTotals, exportTotals, deltaRows, scope);
+
+      setStatus("Lane companion refreshed.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setStatus(message, true);
+    } finally {
+      el.refreshBtn.disabled = false;
+    }
+  }
+
+  async function initialize() {
+    setStatus("Loading Swagger spec...");
+    await state.client.loadSpec();
+
+    state.opIds = {
+      countries: findOperationId("GATSData_GetCountries", "/api/gats/countries"),
+      customsImports: findOperationId("GATSData_GetCustomsDistrictsImports", "/api/gats/customsDistrictImports/partnerCode/{partnerCode}/year/{year}/month/{month}"),
+      customsExports: findOperationId("GATSData_GetCustomsDistrictsExports", "/api/gats/customsDistrictExports/partnerCode/{partnerCode}/year/{year}/month/{month}")
+    };
+
+    const countriesRaw = await runById(state.opIds.countries);
+    const countries = normalizeRows(countriesRaw);
+    state.refs.countries = countries;
+    setCountryOptions(countries);
+
+    const now = new Date();
+    el.yearInput.value = String(now.getFullYear() - 1);
+    el.monthInput.value = String(Math.max(1, now.getMonth()));
+    el.districtThreshold.value = "25";
+    el.imbalanceThreshold.value = "35";
+
+    applyScenarioFromQuery();
+
+    await refresh();
+  }
+
+  el.refreshBtn.addEventListener("click", refresh);
+  el.copyBtn.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(JSON.stringify(scenario(), null, 2));
+    setStatus("Scenario copied to clipboard.");
+  });
+
+  initialize().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    setStatus(`Initialization failed: ${message}`, true);
+  });
+</script>
+</body>
+</html>
