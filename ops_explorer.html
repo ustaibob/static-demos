@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations & Supply Chain — Interactive Equation Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter Tight', sans-serif;
+    background: #0F172A;
+    color: #E2E8F0;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ───────────────────────────────────────────────── */
+  header {
+    background: #1E293B;
+    border-bottom: 3px solid #3B82F6;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #F1F5F9;
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: #3B82F6; }
+  .nav-pills {
+    display: flex;
+    gap: 8px;
+  }
+  .nav-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #334155;
+    background: transparent;
+    color: #94A3B8;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .nav-pill:hover, .nav-pill.active {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    color: #fff;
+  }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 40px 40px 80px; }
+
+  /* ── Section ──────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 80px;
+    scroll-margin-top: 80px;
+  }
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .section-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .icon-blue  { background: #1D4ED8; }
+  .icon-green { background: #15803D; }
+  .icon-amber { background: #B45309; }
+  .icon-purple{ background: #7C3AED; }
+
+  .section-title-block h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #F1F5F9;
+    margin-bottom: 4px;
+  }
+  .section-title-block p {
+    font-size: 15px;
+    color: #94A3B8;
+    line-height: 1.5;
+  }
+  .formula-badge {
+    display: inline-block;
+    background: #1E293B;
+    border: 1px solid #334155;
+    border-left: 4px solid #3B82F6;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #7DD3FC;
+    padding: 6px 14px;
+    margin-top: 8px;
+    border-radius: 4px;
+  }
+
+  /* ── Card Grid ────────────────────────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748B;
+    margin-bottom: 20px;
+  }
+
+  /* ── Sliders ──────────────────────────────────────────────── */
+  .param-row {
+    margin-bottom: 22px;
+  }
+  .param-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .param-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #CBD5E1;
+  }
+  .param-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #38BDF8;
+    min-width: 80px;
+    text-align: right;
+  }
+  .param-desc {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #334155;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3B82F6;
+    cursor: pointer;
+    border: 2px solid #0F172A;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+  }
+  input[type=range].green::-webkit-slider-thumb { background: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.3); }
+  input[type=range].amber::-webkit-slider-thumb { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,0.3); }
+  input[type=range].purple::-webkit-slider-thumb { background: #A78BFA; box-shadow: 0 0 0 3px rgba(167,139,250,0.3); }
+
+  /* ── KPI Row ──────────────────────────────────────────────── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-box {
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748B;
+    margin-bottom: 6px;
+  }
+  .kpi-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #38BDF8;
+  }
+  .kpi-val.green { color: #4ADE80; }
+  .kpi-val.amber { color: #FCD34D; }
+  .kpi-val.red   { color: #F87171; }
+  .kpi-val.purple{ color: #C4B5FD; }
+
+  /* ── Insight Banner ───────────────────────────────────────── */
+  .insight-banner {
+    background: #0F172A;
+    border-left: 4px solid #3B82F6;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #94A3B8;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .insight-banner strong { color: #E2E8F0; }
+  .insight-banner.green { border-color: #22C55E; }
+  .insight-banner.amber { border-color: #F59E0B; }
+  .insight-banner.purple{ border-color: #A78BFA; }
+
+  /* ── Chart wrapper ────────────────────────────────────────── */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 340px;
+  }
+
+  /* ── Divider ──────────────────────────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid #1E293B;
+    margin: 60px 0;
+  }
+
+  /* ── Little's Law special ─────────────────────────────────── */
+  .ll-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ll-box {
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .ll-box .big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #38BDF8;
+    margin: 6px 0;
+  }
+  .ll-box .label { font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.8px; }
+  .ll-box .sym { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #94A3B8; }
+  .ll-eq {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    color: #94A3B8;
+    margin-bottom: 20px;
+  }
+  .ll-eq span { color: #38BDF8; font-weight: 700; }
+
+  /* ── Process Analysis ─────────────────────────────────────── */
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .step-box {
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .step-box .step-name { font-size: 13px; font-weight: 700; color: #94A3B8; margin-bottom: 8px; }
+  .step-box .step-cap {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #38BDF8;
+  }
+  .step-box.bottleneck { border-color: #F87171; }
+  .step-box.bottleneck .step-cap { color: #F87171; }
+  .step-box .step-util { font-size: 12px; color: #64748B; margin-top: 4px; }
+
+  /* ── Toggle tabs ──────────────────────────────────────────── */
+  .tab-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    padding: 7px 18px;
+    background: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #64748B;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: #1D4ED8;
+    border-color: #3B82F6;
+    color: #fff;
+  }
+
+  /* ── Footer ───────────────────────────────────────────────── */
+  footer {
+    text-align: center;
+    padding: 30px;
+    color: #334155;
+    font-size: 13px;
+    border-top: 1px solid #1E293B;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ops &amp; SCM <span>Equation Explorer</span></h1>
+  <nav class="nav-pills">
+    <a class="nav-pill" href="#littles">Little's Law</a>
+    <a class="nav-pill" href="#process">Process Analysis</a>
+    <a class="nav-pill" href="#kingman">Kingman's Eq.</a>
+    <a class="nav-pill" href="#eoq">EOQ</a>
+    <a class="nav-pill" href="#safety">Safety Stock</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- ════════════════════════════════════════════════════════════
+     1. LITTLE'S LAW
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="littles">
+  <div class="section-header">
+    <div class="section-icon icon-blue">⚖️</div>
+    <div class="section-title-block">
+      <h2>Little's Law</h2>
+      <p>The universal relationship between inventory, flow rate, and flow time. Holds for any stable system.</p>
+      <div class="formula-badge">I = R × T</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Parameters</h3>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Flow Rate (R)</span>
+          <span class="param-value" id="ll-r-val">10 units/hr</span>
+        </div>
+        <div class="param-desc">Average number of units entering (and leaving) the system per unit time.</div>
+        <input type="range" id="ll-r" min="1" max="50" value="10" step="1" oninput="updateLL()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Flow Time (T)</span>
+          <span class="param-value" id="ll-t-val">3.0 hr</span>
+        </div>
+        <div class="param-desc">Average time a unit spends inside the system (wait + service).</div>
+        <input type="range" id="ll-t" min="0.5" max="20" value="3" step="0.5" oninput="updateLL()">
+      </div>
+
+      <div class="insight-banner" id="ll-insight">
+        Adjust the sliders to see how inventory accumulates.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Result</h3>
+      <div class="ll-eq">
+        <span id="ll-i-big">30</span> = <span id="ll-r-big">10</span> × <span id="ll-t-big">3</span>
+      </div>
+      <div class="ll-grid">
+        <div class="ll-box">
+          <div class="label">Inventory (I)</div>
+          <div class="big" id="ll-i-kpi">30</div>
+          <div class="sym">units in system</div>
+        </div>
+        <div class="ll-box">
+          <div class="label">Flow Rate (R)</div>
+          <div class="big" id="ll-r-kpi">10</div>
+          <div class="sym">units / hr</div>
+        </div>
+        <div class="ll-box">
+          <div class="label">Flow Time (T)</div>
+          <div class="big" id="ll-t-kpi">3.0</div>
+          <div class="sym">hours</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="llChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════════════════════════════════
+     2. PROCESS ANALYSIS
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="process">
+  <div class="section-header">
+    <div class="section-icon icon-green">⚙️</div>
+    <div class="section-title-block">
+      <h2>Process Analysis &amp; Bottlenecks</h2>
+      <p>Capacity = m / Activity Time. The bottleneck step constrains the entire process.</p>
+      <div class="formula-badge" style="border-color:#22C55E; color:#86EFAC;">R = min{Demand, Capacity₁, Capacity₂, ...}</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Parameters</h3>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Demand Rate</span>
+          <span class="param-value green" id="pa-d-val">15 units/hr</span>
+        </div>
+        <input type="range" class="green" id="pa-d" min="1" max="40" value="15" step="1" oninput="updatePA()">
+      </div>
+
+      <div style="margin-bottom:16px; font-size:13px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;">Step 1 — Activity Time (min)</div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Activity Time</span>
+          <span class="param-value green" id="pa-t1-val">5 min</span>
+        </div>
+        <input type="range" class="green" id="pa-t1" min="1" max="30" value="5" step="1" oninput="updatePA()">
+      </div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Parallel Workers (m)</span>
+          <span class="param-value green" id="pa-m1-val">2</span>
+        </div>
+        <input type="range" class="green" id="pa-m1" min="1" max="8" value="2" step="1" oninput="updatePA()">
+      </div>
+
+      <div style="margin-bottom:16px; font-size:13px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;">Step 2 — Activity Time (min)</div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Activity Time</span>
+          <span class="param-value green" id="pa-t2-val">8 min</span>
+        </div>
+        <input type="range" class="green" id="pa-t2" min="1" max="30" value="8" step="1" oninput="updatePA()">
+      </div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Parallel Workers (m)</span>
+          <span class="param-value green" id="pa-m2-val">2</span>
+        </div>
+        <input type="range" class="green" id="pa-m2" min="1" max="8" value="2" step="1" oninput="updatePA()">
+      </div>
+
+      <div style="margin-bottom:16px; font-size:13px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;">Step 3 — Activity Time (min)</div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Activity Time</span>
+          <span class="param-value green" id="pa-t3-val">4 min</span>
+        </div>
+        <input type="range" class="green" id="pa-t3" min="1" max="30" value="4" step="1" oninput="updatePA()">
+      </div>
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Parallel Workers (m)</span>
+          <span class="param-value green" id="pa-m3-val">1</span>
+        </div>
+        <input type="range" class="green" id="pa-m3" min="1" max="8" value="1" step="1" oninput="updatePA()">
+      </div>
+
+      <div class="insight-banner green" id="pa-insight">Adjust steps to find the bottleneck.</div>
+    </div>
+
+    <div class="card">
+      <h3>Capacity &amp; Utilization</h3>
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-label">Flow Rate</div>
+          <div class="kpi-val green" id="pa-fr">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Bottleneck</div>
+          <div class="kpi-val red" id="pa-bn">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Demand-Constrained?</div>
+          <div class="kpi-val" id="pa-dc">—</div>
+        </div>
+      </div>
+      <div class="process-grid" id="pa-steps"></div>
+      <div class="chart-wrap">
+        <canvas id="paChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════════════════════════════════
+     3. KINGMAN'S EQUATION
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="kingman">
+  <div class="section-header">
+    <div class="section-icon icon-amber">⏳</div>
+    <div class="section-title-block">
+      <h2>Kingman's Equation</h2>
+      <p>Waiting time is driven by three multiplicative factors: capacity, utilization, and variability.</p>
+      <div class="formula-badge" style="border-color:#F59E0B; color:#FCD34D;">Tq = (p/m) × [u/(1-u)] × [(CVa²+CVp²)/2]</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Parameters</h3>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Service Time (p, min)</span>
+          <span class="param-value amber" id="kq-p-val">10 min</span>
+        </div>
+        <div class="param-desc">Average time to serve one customer.</div>
+        <input type="range" class="amber" id="kq-p" min="1" max="60" value="10" step="1" oninput="updateKQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Number of Servers (m)</span>
+          <span class="param-value amber" id="kq-m-val">2</span>
+        </div>
+        <div class="param-desc">Parallel servers (e.g., checkout lanes).</div>
+        <input type="range" class="amber" id="kq-m" min="1" max="10" value="2" step="1" oninput="updateKQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Utilization (u)</span>
+          <span class="param-value amber" id="kq-u-val">75%</span>
+        </div>
+        <div class="param-desc">Fraction of time servers are busy. Drag toward 100% to see the explosion.</div>
+        <input type="range" class="amber" id="kq-u" min="10" max="99" value="75" step="1" oninput="updateKQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Arrival CV (CVa)</span>
+          <span class="param-value amber" id="kq-cva-val">1.0</span>
+        </div>
+        <div class="param-desc">Coefficient of variation of inter-arrival times. 0 = perfectly regular, 1 = Poisson.</div>
+        <input type="range" class="amber" id="kq-cva" min="0" max="2" value="1" step="0.1" oninput="updateKQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Service CV (CVp)</span>
+          <span class="param-value amber" id="kq-cvp-val">1.0</span>
+        </div>
+        <div class="param-desc">Coefficient of variation of service times. 0 = constant service, 1 = exponential.</div>
+        <input type="range" class="amber" id="kq-cvp" min="0" max="2" value="1" step="0.1" oninput="updateKQ()">
+      </div>
+
+      <div class="insight-banner amber" id="kq-insight">Adjust utilization to see the nonlinear penalty.</div>
+    </div>
+
+    <div class="card">
+      <h3>Queueing Outputs</h3>
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-label">Wait in Queue (Tq)</div>
+          <div class="kpi-val amber" id="kq-tq">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Total Time (T)</div>
+          <div class="kpi-val amber" id="kq-tt">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Utilization Factor</div>
+          <div class="kpi-val" id="kq-uf">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Variability Factor</div>
+          <div class="kpi-val" id="kq-vf">—</div>
+        </div>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="setKQTab('util')">Utilization Curve</button>
+        <button class="tab-btn" onclick="setKQTab('var')">Variability Effect</button>
+        <button class="tab-btn" onclick="setKQTab('servers')">Server Count Effect</button>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="kqChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════════════════════════════════
+     4. EOQ
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="eoq">
+  <div class="section-header">
+    <div class="section-icon icon-green">📦</div>
+    <div class="section-title-block">
+      <h2>Economic Order Quantity (EOQ)</h2>
+      <p>The order size that minimizes total annual inventory cost by balancing setup and holding costs.</p>
+      <div class="formula-badge" style="border-color:#22C55E; color:#86EFAC;">EOQ = √(2KR/h) &nbsp;|&nbsp; TC = (R/Q)·K + (Q/2)·h</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Parameters</h3>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Annual Demand (R)</span>
+          <span class="param-value green" id="eoq-r-val">1,200 units/yr</span>
+        </div>
+        <div class="param-desc">Total units demanded per year.</div>
+        <input type="range" class="green" id="eoq-r" min="100" max="10000" value="1200" step="100" oninput="updateEOQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Setup / Order Cost (K)</span>
+          <span class="param-value green" id="eoq-k-val">$200</span>
+        </div>
+        <div class="param-desc">Fixed cost incurred each time an order is placed.</div>
+        <input type="range" class="green" id="eoq-k" min="10" max="2000" value="200" step="10" oninput="updateEOQ()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Annual Holding Cost (h)</span>
+          <span class="param-value green" id="eoq-h-val">$8 / unit / yr</span>
+        </div>
+        <div class="param-desc">Cost to hold one unit in inventory for one year (storage, capital, obsolescence).</div>
+        <input type="range" class="green" id="eoq-h" min="1" max="100" value="8" step="1" oninput="updateEOQ()">
+      </div>
+
+      <div class="insight-banner green" id="eoq-insight">Adjust parameters to see the cost crossover.</div>
+    </div>
+
+    <div class="card">
+      <h3>EOQ Outputs</h3>
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-label">Optimal EOQ</div>
+          <div class="kpi-val green" id="eoq-q">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Min Total Cost</div>
+          <div class="kpi-val green" id="eoq-tc">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Orders per Year</div>
+          <div class="kpi-val" id="eoq-n">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Avg Cycle Time</div>
+          <div class="kpi-val" id="eoq-ct">—</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="eoqChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════════════════════════════════
+     5. SAFETY STOCK / ROP
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="safety">
+  <div class="section-header">
+    <div class="section-icon icon-purple">🛡️</div>
+    <div class="section-title-block">
+      <h2>Safety Stock &amp; Reorder Point</h2>
+      <p>Safety stock is a buffer against demand uncertainty. The ROP triggers replenishment while the buffer protects against stockouts.</p>
+      <div class="formula-badge" style="border-color:#A78BFA; color:#C4B5FD;">SS = z·σL &nbsp;|&nbsp; ROP = R̄·L + SS</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Parameters</h3>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Avg Daily Demand (R̄)</span>
+          <span class="param-value purple" id="ss-r-val">50 units/day</span>
+        </div>
+        <div class="param-desc">Expected demand per day.</div>
+        <input type="range" class="purple" id="ss-r" min="10" max="500" value="50" step="5" oninput="updateSS()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Demand Std Dev (σd)</span>
+          <span class="param-value purple" id="ss-sd-val">10 units/day</span>
+        </div>
+        <div class="param-desc">Day-to-day variability in demand.</div>
+        <input type="range" class="purple" id="ss-sd" min="1" max="100" value="10" step="1" oninput="updateSS()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Lead Time (L, days)</span>
+          <span class="param-value purple" id="ss-l-val">7 days</span>
+        </div>
+        <div class="param-desc">Time between placing an order and receiving it.</div>
+        <input type="range" class="purple" id="ss-l" min="1" max="30" value="7" step="1" oninput="updateSS()">
+      </div>
+
+      <div class="param-row">
+        <div class="param-label">
+          <span class="param-name">Service Level (%)</span>
+          <span class="param-value purple" id="ss-sl-val">95%</span>
+        </div>
+        <div class="param-desc">Probability of not stocking out during lead time. Drives the z-score.</div>
+        <input type="range" class="purple" id="ss-sl" min="50" max="99.9" value="95" step="0.5" oninput="updateSS()">
+      </div>
+
+      <div class="insight-banner purple" id="ss-insight">Adjust service level to see the exponential cost of perfection.</div>
+    </div>
+
+    <div class="card">
+      <h3>Safety Stock Outputs</h3>
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-label">z-score</div>
+          <div class="kpi-val purple" id="ss-z">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Safety Stock (SS)</div>
+          <div class="kpi-val purple" id="ss-ss">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Expected Demand (R̄·L)</div>
+          <div class="kpi-val" id="ss-edl">—</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Reorder Point (ROP)</div>
+          <div class="kpi-val purple" id="ss-rop">—</div>
+        </div>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="setSSTab('dist')">Demand Distribution</button>
+        <button class="tab-btn" onclick="setSSTab('sl')">Service Level vs SS</button>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="ssChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Operations &amp; Supply Chain Management — Interactive Equation Explorer &nbsp;·&nbsp; For educational use</footer>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n, dec=1) => n.toFixed(dec);
+const fmtInt = n => Math.round(n).toLocaleString();
+const fmtDollar = n => '$' + fmtInt(n);
+
+// Normal distribution helpers
+function normPDF(x, mu, sigma) {
+  return (1/(sigma*Math.sqrt(2*Math.PI))) * Math.exp(-0.5*((x-mu)/sigma)**2);
+}
+function normCDF(z) {
+  // Abramowitz & Stegun approximation
+  const t = 1/(1+0.2316419*Math.abs(z));
+  const d = 0.3989423*Math.exp(-z*z/2);
+  const p = d*t*(0.3193815+t*(-0.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));
+  return z >= 0 ? 1-p : p;
+}
+function normInvCDF(p) {
+  // Rational approximation (Beasley-Springer-Moro)
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  const a = [0,-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b = [0,-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c = [0,-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d2 = [0,7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const pLow = 0.02425, pHigh = 1-pLow;
+  let q, r;
+  if (p < pLow) {
+    q = Math.sqrt(-2*Math.log(p));
+    return (((((c[1]*q+c[2])*q+c[3])*q+c[4])*q+c[5])*q+c[6]) / ((((d2[1]*q+d2[2])*q+d2[3])*q+d2[4])*q+1);
+  } else if (p <= pHigh) {
+    q = p-0.5; r = q*q;
+    return (((((a[1]*r+a[2])*r+a[3])*r+a[4])*r+a[5])*r+a[6])*q / (((((b[1]*r+b[2])*r+b[3])*r+b[4])*r+b[5])*r+1);
+  } else {
+    q = Math.sqrt(-2*Math.log(1-p));
+    return -(((((c[1]*q+c[2])*q+c[3])*q+c[4])*q+c[5])*q+c[6]) / ((((d2[1]*q+d2[2])*q+d2[3])*q+d2[4])*q+1);
+  }
+}
+
+// ── Chart instances ───────────────────────────────────────────────────────────
+let llChart, paChart, kqChart, eoqChart, ssChart;
+let kqTab = 'util', ssTab = 'dist';
+
+function setKQTab(t) {
+  kqTab = t;
+  document.querySelectorAll('#kingman .tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['util','var','servers'][i] === t);
+  });
+  updateKQ();
+}
+function setSSTab(t) {
+  ssTab = t;
+  document.querySelectorAll('#safety .tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['dist','sl'][i] === t);
+  });
+  updateSS();
+}
+
+// ── LITTLE'S LAW ─────────────────────────────────────────────────────────────
+function updateLL() {
+  const R = +document.getElementById('ll-r').value;
+  const T = +document.getElementById('ll-t').value;
+  const I = R * T;
+
+  document.getElementById('ll-r-val').textContent = R + ' units/hr';
+  document.getElementById('ll-t-val').textContent = T.toFixed(1) + ' hr';
+  document.getElementById('ll-i-big').textContent = fmtInt(I);
+  document.getElementById('ll-r-big').textContent = R;
+  document.getElementById('ll-t-big').textContent = T.toFixed(1);
+  document.getElementById('ll-i-kpi').textContent = fmtInt(I);
+  document.getElementById('ll-r-kpi').textContent = R;
+  document.getElementById('ll-t-kpi').textContent = T.toFixed(1);
+
+  const insight = document.getElementById('ll-insight');
+  insight.innerHTML = `At <strong>R = ${R} units/hr</strong> and <strong>T = ${T} hr</strong>, the system holds <strong>${fmtInt(I)} units</strong> on average. To reduce inventory without cutting throughput, you must reduce flow time (eliminate waste, cut wait times).`;
+
+  // Chart: I vs T for current R, and I vs R for current T
+  const tVals = [], iByT = [], rVals = [], iByR = [];
+  for (let t = 0.5; t <= 20; t += 0.5) { tVals.push(t); iByT.push(R * t); }
+  for (let r = 1; r <= 50; r++) { rVals.push(r); iByR.push(r * T); }
+
+  if (!llChart) {
+    llChart = new Chart(document.getElementById('llChart'), {
+      type: 'line',
+      data: {
+        labels: tVals,
+        datasets: [
+          { label: 'I vs Flow Time (T) at current R', data: iByT, borderColor: '#38BDF8', borderWidth: 2, pointRadius: 0, tension: 0.3, yAxisID: 'y' },
+          { label: 'I vs Flow Rate (R) at current T', data: iByR.slice(0, tVals.length), borderColor: '#818CF8', borderWidth: 2, pointRadius: 0, tension: 0.3, yAxisID: 'y', borderDash: [5,5] }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+        scales: {
+          x: { title: { display: true, text: 'Flow Time T (hr) / Flow Rate R (units/hr)', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' } },
+          y: { title: { display: true, text: 'Inventory I (units)', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' } }
+        }
+      }
+    });
+  } else {
+    llChart.data.labels = tVals;
+    llChart.data.datasets[0].data = iByT;
+    llChart.data.datasets[0].label = `I vs Flow Time (T) at R=${R}`;
+    llChart.data.datasets[1].data = iByR.slice(0, tVals.length);
+    llChart.data.datasets[1].label = `I vs Flow Rate (R) at T=${T}`;
+    llChart.update();
+  }
+}
+
+// ── PROCESS ANALYSIS ─────────────────────────────────────────────────────────
+function updatePA() {
+  const D = +document.getElementById('pa-d').value;
+  const t1 = +document.getElementById('pa-t1').value, m1 = +document.getElementById('pa-m1').value;
+  const t2 = +document.getElementById('pa-t2').value, m2 = +document.getElementById('pa-m2').value;
+  const t3 = +document.getElementById('pa-t3').value, m3 = +document.getElementById('pa-m3').value;
+
+  document.getElementById('pa-d-val').textContent = D + ' units/hr';
+  document.getElementById('pa-t1-val').textContent = t1 + ' min';
+  document.getElementById('pa-m1-val').textContent = m1;
+  document.getElementById('pa-t2-val').textContent = t2 + ' min';
+  document.getElementById('pa-m2-val').textContent = m2;
+  document.getElementById('pa-t3-val').textContent = t3 + ' min';
+  document.getElementById('pa-m3-val').textContent = m3;
+
+  // Capacities in units/hr (60 min/hr)
+  const cap1 = (m1 / t1) * 60;
+  const cap2 = (m2 / t2) * 60;
+  const cap3 = (m3 / t3) * 60;
+  const caps = [cap1, cap2, cap3];
+  const processCap = Math.min(...caps);
+  const FR = Math.min(D, processCap);
+  const bnIdx = caps.indexOf(processCap);
+
+  document.getElementById('pa-fr').textContent = fmt(FR, 1) + ' u/hr';
+  document.getElementById('pa-bn').textContent = 'Step ' + (bnIdx+1);
+  document.getElementById('pa-dc').textContent = D <= processCap ? 'Yes' : 'No';
+  document.getElementById('pa-dc').className = 'kpi-val ' + (D <= processCap ? 'green' : 'red');
+
+  // Step boxes
+  const stepsEl = document.getElementById('pa-steps');
+  stepsEl.innerHTML = '';
+  ['Step 1','Step 2','Step 3'].forEach((name, i) => {
+    const cap = caps[i];
+    const util = FR / cap;
+    const isBN = i === bnIdx;
+    stepsEl.innerHTML += `<div class="step-box ${isBN ? 'bottleneck' : ''}">
+      <div class="step-name">${name} ${isBN ? '🔴 BOTTLENECK' : ''}</div>
+      <div class="step-cap">${fmt(cap,1)} u/hr</div>
+      <div class="step-util">Util: ${fmt(util*100,1)}%</div>
+    </div>`;
+  });
+
+  const insight = document.getElementById('pa-insight');
+  insight.innerHTML = `Process capacity is <strong>${fmt(processCap,1)} u/hr</strong> (constrained by Step ${bnIdx+1}). Flow rate = <strong>${fmt(FR,1)} u/hr</strong>. ${D > processCap ? 'Demand exceeds capacity — the process is the constraint.' : 'Demand is the constraint — the process has idle capacity.'}`;
+
+  // Bar chart
+  const utilVals = caps.map(c => Math.min(FR/c*100, 100));
+  if (!paChart) {
+    paChart = new Chart(document.getElementById('paChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Step 1','Step 2','Step 3'],
+        datasets: [
+          { label: 'Capacity (u/hr)', data: caps, backgroundColor: 'rgba(59,130,246,0.3)', borderColor: '#3B82F6', borderWidth: 2 },
+          { label: 'Flow Rate (u/hr)', data: [FR,FR,FR], backgroundColor: 'rgba(34,197,94,0.2)', borderColor: '#22C55E', borderWidth: 2, borderDash: [5,5], type: 'line', pointRadius: 0 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+        scales: {
+          x: { ticks: { color: '#94A3B8' }, grid: { color: '#1E293B' } },
+          y: { title: { display: true, text: 'Units / hr', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' } }
+        }
+      }
+    });
+  } else {
+    paChart.data.datasets[0].data = caps;
+    paChart.data.datasets[1].data = [FR,FR,FR];
+    paChart.data.datasets[0].backgroundColor = caps.map((c,i) => i===bnIdx ? 'rgba(248,113,113,0.4)' : 'rgba(59,130,246,0.3)');
+    paChart.data.datasets[0].borderColor = caps.map((c,i) => i===bnIdx ? '#F87171' : '#3B82F6');
+    paChart.update();
+  }
+}
+
+// ── KINGMAN'S EQUATION ───────────────────────────────────────────────────────
+function updateKQ() {
+  const p   = +document.getElementById('kq-p').value;
+  const m   = +document.getElementById('kq-m').value;
+  const u   = +document.getElementById('kq-u').value / 100;
+  const cva = +document.getElementById('kq-cva').value;
+  const cvp = +document.getElementById('kq-cvp').value;
+
+  document.getElementById('kq-p-val').textContent = p + ' min';
+  document.getElementById('kq-m-val').textContent = m;
+  document.getElementById('kq-u-val').textContent = (u*100).toFixed(0) + '%';
+  document.getElementById('kq-cva-val').textContent = cva.toFixed(1);
+  document.getElementById('kq-cvp-val').textContent = cvp.toFixed(1);
+
+  const utilFactor = u / (1-u);
+  const varFactor  = (cva**2 + cvp**2) / 2;
+  const Tq = (p/m) * utilFactor * varFactor;
+  const T  = Tq + p;
+
+  document.getElementById('kq-tq').textContent = fmt(Tq,1) + ' min';
+  document.getElementById('kq-tt').textContent = fmt(T,1) + ' min';
+  document.getElementById('kq-uf').textContent = fmt(utilFactor,2) + '×';
+  document.getElementById('kq-vf').textContent = fmt(varFactor,2) + '×';
+
+  const uPct = (u*100).toFixed(0);
+  const insight = document.getElementById('kq-insight');
+  if (u >= 0.9) {
+    insight.innerHTML = `⚠️ <strong>Danger Zone!</strong> At ${uPct}% utilization, the wait time is <strong>${fmt(Tq,1)} min</strong> — ${fmt(utilFactor,1)}× the service time. Adding even 1% more utilization will dramatically worsen waits.`;
+    insight.className = 'insight-banner amber';
+  } else if (u >= 0.75) {
+    insight.innerHTML = `At ${uPct}% utilization, wait time is <strong>${fmt(Tq,1)} min</strong>. You are in the nonlinear zone — small increases in demand will cause disproportionate queue growth.`;
+    insight.className = 'insight-banner amber';
+  } else {
+    insight.innerHTML = `At ${uPct}% utilization, wait time is <strong>${fmt(Tq,1)} min</strong>. The system has comfortable idle capacity to absorb variability.`;
+    insight.className = 'insight-banner amber';
+  }
+
+  // Build chart data based on active tab
+  let labels, datasets, xTitle, yTitle;
+
+  if (kqTab === 'util') {
+    labels = []; const d1 = [];
+    for (let ui = 5; ui <= 99; ui++) {
+      labels.push(ui);
+      const tqi = (p/m) * (ui/100/(1-ui/100)) * varFactor;
+      d1.push(tqi);
+    }
+    datasets = [{ label: 'Wait Time Tq (min)', data: d1, borderColor: '#F59E0B', borderWidth: 3, pointRadius: 0, tension: 0.3, fill: { target: 'origin', above: 'rgba(245,158,11,0.1)' } }];
+    xTitle = 'Utilization (%)'; yTitle = 'Wait Time Tq (min)';
+    // Add current point
+    datasets.push({ label: 'Current Setting', data: labels.map(l => l === Math.round(u*100) ? (p/m)*(l/100/(1-l/100))*varFactor : null), borderColor: '#EF4444', borderWidth: 0, pointRadius: labels.map(l => l === Math.round(u*100) ? 8 : 0), pointBackgroundColor: '#EF4444' });
+  } else if (kqTab === 'var') {
+    labels = []; const dCV0 = [], dCV1 = [], dCV2 = [];
+    for (let ui = 5; ui <= 99; ui++) {
+      labels.push(ui);
+      const uf = (ui/100)/(1-ui/100);
+      dCV0.push((p/m)*uf*0);
+      dCV1.push((p/m)*uf*1);
+      dCV2.push((p/m)*uf*2);
+    }
+    datasets = [
+      { label: 'CV=0 (No variability)', data: dCV0, borderColor: '#4ADE80', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: 'CV=1 (Typical)', data: dCV1, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: 'CV=2 (High variability)', data: dCV2, borderColor: '#F87171', borderWidth: 2, pointRadius: 0, tension: 0.3 }
+    ];
+    xTitle = 'Utilization (%)'; yTitle = 'Wait Time Tq (min)';
+  } else {
+    // servers
+    labels = []; const d1s = [], d2s = [], d4s = [];
+    for (let ui = 5; ui <= 99; ui++) {
+      labels.push(ui);
+      const uf = (ui/100)/(1-ui/100);
+      d1s.push((p/1)*uf*varFactor);
+      d2s.push((p/2)*uf*varFactor);
+      d4s.push((p/4)*uf*varFactor);
+    }
+    datasets = [
+      { label: 'm=1 server', data: d1s, borderColor: '#F87171', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: 'm=2 servers', data: d2s, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: 'm=4 servers', data: d4s, borderColor: '#4ADE80', borderWidth: 2, pointRadius: 0, tension: 0.3 }
+    ];
+    xTitle = 'Utilization (%)'; yTitle = 'Wait Time Tq (min)';
+  }
+
+  if (!kqChart) {
+    kqChart = new Chart(document.getElementById('kqChart'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+        scales: {
+          x: { title: { display: true, text: xTitle, color: '#64748B' }, ticks: { color: '#64748B', maxTicksLimit: 10 }, grid: { color: '#1E293B' } },
+          y: { title: { display: true, text: yTitle, color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' }, min: 0 }
+        }
+      }
+    });
+  } else {
+    kqChart.data.labels = labels;
+    kqChart.data.datasets = datasets;
+    kqChart.options.scales.x.title.text = xTitle;
+    kqChart.options.scales.y.title.text = yTitle;
+    kqChart.update();
+  }
+}
+
+// ── EOQ ──────────────────────────────────────────────────────────────────────
+function updateEOQ() {
+  const R = +document.getElementById('eoq-r').value;
+  const K = +document.getElementById('eoq-k').value;
+  const h = +document.getElementById('eoq-h').value;
+
+  document.getElementById('eoq-r-val').textContent = fmtInt(R) + ' units/yr';
+  document.getElementById('eoq-k-val').textContent = '$' + fmtInt(K);
+  document.getElementById('eoq-h-val').textContent = '$' + h + ' / unit / yr';
+
+  const eoq = Math.sqrt(2*K*R/h);
+  const tc  = (R/eoq)*K + (eoq/2)*h;
+  const n   = R/eoq;
+  const ct  = 365/n;
+
+  document.getElementById('eoq-q').textContent  = fmtInt(eoq) + ' units';
+  document.getElementById('eoq-tc').textContent = fmtDollar(tc) + '/yr';
+  document.getElementById('eoq-n').textContent  = fmt(n,1) + '/yr';
+  document.getElementById('eoq-ct').textContent = fmt(ct,0) + ' days';
+
+  const insight = document.getElementById('eoq-insight');
+  insight.innerHTML = `Order <strong>${fmtInt(eoq)} units</strong> at a time, <strong>${fmt(n,1)} times/year</strong> (every ${fmt(ct,0)} days). At this quantity, holding cost = setup cost = <strong>${fmtDollar(tc/2)}/yr each</strong>, minimizing total cost.`;
+
+  // Chart
+  const maxQ = eoq * 3;
+  const labels = [], setup = [], holding = [], total = [];
+  for (let q = maxQ/100; q <= maxQ; q += maxQ/100) {
+    labels.push(Math.round(q));
+    setup.push((R/q)*K);
+    holding.push((q/2)*h);
+    total.push((R/q)*K + (q/2)*h);
+  }
+
+  if (!eoqChart) {
+    eoqChart = new Chart(document.getElementById('eoqChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Total Cost', data: total, borderColor: '#3B82F6', borderWidth: 3, pointRadius: 0, tension: 0.3 },
+          { label: 'Holding Cost (Q/2·h)', data: holding, borderColor: '#F87171', borderWidth: 2, borderDash: [5,5], pointRadius: 0, tension: 0.3 },
+          { label: 'Setup Cost (R/Q·K)', data: setup, borderColor: '#4ADE80', borderWidth: 2, borderDash: [5,5], pointRadius: 0, tension: 0.3 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+        scales: {
+          x: { title: { display: true, text: 'Order Quantity (Q)', color: '#64748B' }, ticks: { color: '#64748B', maxTicksLimit: 8 }, grid: { color: '#1E293B' } },
+          y: { title: { display: true, text: 'Annual Cost ($)', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' }, min: 0 }
+        }
+      },
+      plugins: [{
+        id: 'eoqMarker',
+        afterDraw: chart => {
+          const ctx = chart.ctx;
+          const xAxis = chart.scales.x;
+          const yAxis = chart.scales.y;
+          const eoqIdx = labels.findIndex(l => l >= Math.round(eoq));
+          if (eoqIdx < 0) return;
+          const xPx = xAxis.getPixelForValue(eoqIdx);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPx, yAxis.top);
+          ctx.lineTo(xPx, yAxis.bottom);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6,4]);
+          ctx.stroke();
+          ctx.fillStyle = '#F59E0B';
+          ctx.font = "bold 13px 'JetBrains Mono'";
+          ctx.textAlign = 'center';
+          ctx.fillText('EOQ', xPx, yAxis.top + 16);
+          ctx.restore();
+        }
+      }]
+    });
+  } else {
+    eoqChart.data.labels = labels;
+    eoqChart.data.datasets[0].data = total;
+    eoqChart.data.datasets[1].data = holding;
+    eoqChart.data.datasets[2].data = setup;
+    eoqChart.update();
+  }
+}
+
+// ── SAFETY STOCK ─────────────────────────────────────────────────────────────
+function updateSS() {
+  const Rbar = +document.getElementById('ss-r').value;
+  const sd   = +document.getElementById('ss-sd').value;
+  const L    = +document.getElementById('ss-l').value;
+  const sl   = +document.getElementById('ss-sl').value / 100;
+
+  document.getElementById('ss-r-val').textContent  = Rbar + ' units/day';
+  document.getElementById('ss-sd-val').textContent = sd + ' units/day';
+  document.getElementById('ss-l-val').textContent  = L + ' days';
+  document.getElementById('ss-sl-val').textContent = (sl*100).toFixed(1) + '%';
+
+  const sigmaL = sd * Math.sqrt(L);
+  const z      = normInvCDF(sl);
+  const SS     = z * sigmaL;
+  const EDL    = Rbar * L;
+  const ROP    = EDL + SS;
+
+  document.getElementById('ss-z').textContent   = fmt(z,2);
+  document.getElementById('ss-ss').textContent  = fmtInt(SS) + ' units';
+  document.getElementById('ss-edl').textContent = fmtInt(EDL) + ' units';
+  document.getElementById('ss-rop').textContent = fmtInt(ROP) + ' units';
+
+  const insight = document.getElementById('ss-insight');
+  insight.innerHTML = `At <strong>${(sl*100).toFixed(1)}% service level</strong>, you need <strong>${fmtInt(SS)} units</strong> of safety stock. Reorder when inventory hits <strong>${fmtInt(ROP)} units</strong>. σL = ${fmt(sigmaL,1)} units (demand std dev over lead time).`;
+
+  if (ssTab === 'dist') {
+    // Normal distribution chart
+    const mu = EDL, sigma = sigmaL;
+    const xMin = Math.max(0, mu - 4*sigma), xMax = mu + 4*sigma;
+    const step = (xMax - xMin) / 200;
+    const labels = [], serviceData = [], stockoutData = [];
+    for (let x = xMin; x <= xMax; x += step) {
+      labels.push(Math.round(x));
+      const y = normPDF(x, mu, sigma);
+      serviceData.push(x <= ROP ? y : null);
+      stockoutData.push(x >= ROP ? y : null);
+    }
+
+    if (!ssChart) {
+      ssChart = new Chart(document.getElementById('ssChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: `Service Level (${(sl*100).toFixed(1)}%)`, data: serviceData, borderColor: '#818CF8', backgroundColor: 'rgba(129,140,248,0.2)', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, spanGaps: false },
+            { label: 'Stockout Risk', data: stockoutData, borderColor: '#F87171', backgroundColor: 'rgba(248,113,113,0.5)', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, spanGaps: false }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+          scales: {
+            x: { title: { display: true, text: 'Demand During Lead Time (units)', color: '#64748B' }, ticks: { color: '#64748B', maxTicksLimit: 8 }, grid: { color: '#1E293B' } },
+            y: { display: false, min: 0 }
+          }
+        },
+        plugins: [{
+          id: 'ropLine',
+          afterDraw: chart => {
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            const ropIdx = labels.findIndex(l => l >= Math.round(ROP));
+            if (ropIdx < 0) return;
+            const xPx = xAxis.getPixelForValue(ropIdx);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(xPx, yAxis.top);
+            ctx.lineTo(xPx, yAxis.bottom);
+            ctx.strokeStyle = '#A78BFA';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6,4]);
+            ctx.stroke();
+            ctx.fillStyle = '#A78BFA';
+            ctx.font = "bold 13px 'JetBrains Mono'";
+            ctx.textAlign = 'left';
+            ctx.fillText('ROP=' + fmtInt(ROP), xPx + 4, yAxis.top + 16);
+            ctx.restore();
+          }
+        }]
+      });
+    } else {
+      ssChart.data.labels = labels;
+      ssChart.data.datasets[0].data = serviceData;
+      ssChart.data.datasets[0].label = `Service Level (${(sl*100).toFixed(1)}%)`;
+      ssChart.data.datasets[1].data = stockoutData;
+      ssChart.update();
+    }
+  } else {
+    // Service Level vs Safety Stock curve
+    const slVals = [], ssVals = [];
+    for (let s = 50; s <= 99.9; s += 0.5) {
+      slVals.push(s.toFixed(1));
+      ssVals.push(normInvCDF(s/100) * sigmaL);
+    }
+
+    if (!ssChart) {
+      ssChart = new Chart(document.getElementById('ssChart'), {
+        type: 'line',
+        data: {
+          labels: slVals,
+          datasets: [{ label: 'Safety Stock (units)', data: ssVals, borderColor: '#A78BFA', borderWidth: 3, pointRadius: 0, tension: 0.3, fill: { target: 'origin', above: 'rgba(167,139,250,0.1)' } }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { labels: { color: '#94A3B8', font: { size: 13 } } } },
+          scales: {
+            x: { title: { display: true, text: 'Service Level (%)', color: '#64748B' }, ticks: { color: '#64748B', maxTicksLimit: 10 }, grid: { color: '#1E293B' } },
+            y: { title: { display: true, text: 'Safety Stock (units)', color: '#64748B' }, ticks: { color: '#64748B' }, grid: { color: '#1E293B' }, min: 0 }
+          }
+        }
+      });
+    } else {
+      ssChart.data.labels = slVals;
+      ssChart.data.datasets = [{ label: 'Safety Stock (units)', data: ssVals, borderColor: '#A78BFA', borderWidth: 3, pointRadius: 0, tension: 0.3, fill: { target: 'origin', above: 'rgba(167,139,250,0.1)' } }];
+      ssChart.options.scales.x.title.text = 'Service Level (%)';
+      ssChart.options.scales.y.title.text = 'Safety Stock (units)';
+      ssChart.update();
+    }
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+updateLL();
+updatePA();
+updateKQ();
+updateEOQ();
+updateSS();
+</script>
+</body>
+</html>
