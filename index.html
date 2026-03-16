@@ -40,29 +40,18 @@
     padding: 18px;
     margin-bottom: 14px;
   }
-  .redirect-banner {
+  .flow-note {
     margin-top: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     padding: 10px 12px;
     border: 1px solid var(--line);
     border-radius: 12px;
     background: linear-gradient(90deg, rgba(222, 242, 238, 0.95), rgba(255, 247, 235, 0.95));
-  }
-  .redirect-text {
     color: var(--muted);
     font-size: 13px;
-    line-height: 1.4;
+    line-height: 1.45;
   }
-  .redirect-text strong {
+  .flow-note strong {
     color: var(--ink);
-  }
-  .redirect-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
   }
   .btn {
     border: 1px solid var(--line);
@@ -139,30 +128,25 @@
     <section class="hero">
       <h1 class="title">FAS Supply Chain Portal</h1>
       <p class="subtitle">Root home page for planning and monitoring foreign agriculture risk and timing flows.</p>
-      <div class="redirect-banner" id="redirect-banner">
-        <div class="redirect-text">
-          <strong>Default route:</strong> opening Plan Builder in <span id="countdown">2</span>s so planning starts at the right entry point.
-        </div>
-        <div class="redirect-actions">
-          <button class="btn" id="stay-btn" type="button">Stay Here</button>
-          <button class="btn primary" id="open-now-btn" type="button">Open Plan Builder</button>
-        </div>
+      <div class="flow-note">
+        <strong>Recommended flow:</strong> 1) start in Plan Builder, 2) launch to Supply Chain Dashboard for global signals,
+        3) open Lane Companion for district-level timing risks.
       </div>
     </section>
 
     <section class="grid">
       <a class="card" href="/fas-plan-builder">
-        <span class="tag">Plan</span>
+        <span class="tag">Step 1</span>
         <h2>Plan Builder</h2>
         <p>Create, save, and launch scenario plans into live dashboards with thresholds and target settings.</p>
       </a>
       <a class="card" href="/fas-supply-chain-dashboard">
-        <span class="tag">Primary</span>
+        <span class="tag">Step 2</span>
         <h2>Supply Chain Dashboard</h2>
         <p>Track concentration, trade ratio, freshness timing, and progress against plan side-by-side.</p>
       </a>
       <a class="card" href="/fas-lane-companion">
-        <span class="tag">Companion</span>
+        <span class="tag">Step 3</span>
         <h2>Lane Companion</h2>
         <p>Monitor customs district lane exposure and import/export imbalances by partner and month.</p>
       </a>
@@ -173,41 +157,5 @@
       </a>
     </section>
   </div>
-  <script>
-    const PLAN_BUILDER_URL = "/fas-plan-builder";
-    const countdownEl = document.getElementById("countdown");
-    const stayBtn = document.getElementById("stay-btn");
-    const openNowBtn = document.getElementById("open-now-btn");
-    const bannerEl = document.getElementById("redirect-banner");
-
-    let secondsRemaining = 2;
-    let redirectCancelled = false;
-
-    const intervalId = window.setInterval(() => {
-      if (redirectCancelled) {
-        window.clearInterval(intervalId);
-        return;
-      }
-
-      secondsRemaining -= 1;
-
-      if (secondsRemaining <= 0) {
-        window.clearInterval(intervalId);
-        window.location.href = PLAN_BUILDER_URL;
-        return;
-      }
-
-      countdownEl.textContent = String(secondsRemaining);
-    }, 1000);
-
-    stayBtn.addEventListener("click", () => {
-      redirectCancelled = true;
-      bannerEl.querySelector(".redirect-text").innerHTML = "<strong>Redirect cancelled.</strong> The root page will stay on the portal until you choose a destination.";
-    });
-
-    openNowBtn.addEventListener("click", () => {
-      window.location.href = PLAN_BUILDER_URL;
-    });
-  </script>
 </body>
 </html>
