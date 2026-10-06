@@ -1,0 +1,233 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Network Scenario Simulator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a working bench. Results (charts + scorecard) first, then the three editable inputs: networks, demand scenarios, cost & service profiles. */
+:root{
+  --bg:#f6f7f5; --surface:#fcfcfb; --ink:#14201d; --ink2:#4d5a56; --muted:#7b8783; --line:#d9dedb; --field:#ffffff;
+  --accent:#0f5f57; --accent-ink:#ffffff;
+  --good:#1a7f37; --bad:#c62f2f; --good-bg:#e3f3e7; --bad-bg:#fbe6e4;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121615; --surface:#1a1f1d; --ink:#f2f5f3; --ink2:#bcc6c2; --muted:#8c9793; --line:#313936; --field:#111514;
+  --accent:#58c2b4; --accent-ink:#06211d;
+  --good:#5fce7e; --bad:#f08079; --good-bg:#17301f; --bad-bg:#3a1c1a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#121615; --surface:#1a1f1d; --ink:#f2f5f3; --ink2:#bcc6c2; --muted:#8c9793; --line:#313936; --field:#111514;
+  --accent:#58c2b4; --accent-ink:#06211d;
+  --good:#5fce7e; --bad:#f08079; --good-bg:#17301f; --bad-bg:#3a1c1a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:20px;padding-block:28px 56px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--display);font-size:1.75rem;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.1rem;margin:0;text-wrap:balance}
+.eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+p{margin:0;color:var(--ink2);max-width:68ch}
+header{display:flex;flex-direction:column;gap:6px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.sub{font-size:.85rem;color:var(--ink2)}
+.chart{position:relative;height:320px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.86rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{background:var(--field);border:1px solid var(--line);border-radius:4px;padding:5px 7px;max-width:100%}
+input[type=number]{width:6.2em;text-align:right;font-variant-numeric:tabular-nums}
+input.name{width:18em}
+input.wide{width:9.5em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{background:transparent;border:1px solid var(--line);border-radius:4px;padding:5px 11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button[disabled]{opacity:.45;cursor:not-allowed}
+button.x{padding:2px 8px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;border-radius:0}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.72rem;font-weight:600;margin-left:6px}
+.pill.ok{background:var(--good-bg);color:var(--good)} .pill.no{background:var(--bad-bg);color:var(--bad)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:baseline}
+.up{color:var(--bad)} .down{color:var(--good)}
+details>summary{cursor:pointer;font-family:var(--display);font-size:1.1rem;font-weight:600}
+details[open]>summary{margin-bottom:14px}
+.fields{display:flex;flex-wrap:wrap;gap:12px 22px}
+.fields label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--ink2)}
+.check{display:flex;align-items:center;gap:7px;font-size:.85rem;color:var(--ink2);cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.stack{display:flex;flex-direction:column;gap:18px}
+.note{font-size:.8rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Full Network Design Challenge · Cascade Consumer Goods</span>
+    <h1>Network Scenario Simulator</h1>
+    <p>Enter each team's network, set regional demand scenarios, and see what each scenario does to annual cost and the 3-day delivery contract. Every number on this page is editable. The networks loaded are the six reference configurations from the guide, shipping by truckload.</p>
+  </header>
+
+  <section class="panel">
+    <details id="profiles">
+      <summary>Cost and service profiles</summary>
+      <div class="stack">
+        <div class="fields" id="params"></div>
+        <div class="scroll"><table id="dcT"></table></div>
+        <div class="scroll"><table id="modeT"></table></div>
+        <div class="scroll"><table id="regT"></table></div>
+        <p class="note">DC costs and transit days, mode costs, regional shares and the 800M-unit volume come from the course handouts. Inventory cost, the late-delivery charge and the fastest-transit figures are assumptions added for this simulator. Set the late-delivery charge to 0 to turn it off.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details id="netsBox" open>
+      <summary>Networks</summary>
+      <div class="stack">
+        <div class="head"><div class="sub">Each region ships from whichever chosen DC is closest, using the mode picked for that region.</div>
+          <button class="primary" id="addNet">Add network</button></div>
+        <div class="scroll"><table id="nets"></table></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details id="scsBox" open>
+      <summary>Demand scenarios</summary>
+      <div class="stack">
+        <div class="head"><div class="sub">Percent change from forecast, by region. Forecast itself is always the comparison point.</div>
+          <button class="primary" id="addSc">Add scenario</button></div>
+        <div class="scroll"><table id="scs"></table></div>
+      </div>
+    </details>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="head">
+        <div><h2 id="c1title">Cost change vs. forecast</h2><div class="sub">Annual cost of each network under each demand scenario</div></div>
+        <div class="seg" role="group" aria-label="Chart measure">
+          <button id="viewDelta" aria-pressed="true">Change</button><button id="viewTotal" aria-pressed="false">Total</button>
+        </div>
+      </div>
+      <div class="chart"><canvas id="chart1" aria-label="Cost by scenario and network" role="img"></canvas></div>
+    </section>
+    <section class="panel">
+      <div class="head">
+        <div><h2>Where the cost comes from</h2><div class="sub">One network, broken into cost components</div></div>
+        <select id="pickNet" aria-label="Network to break down"></select>
+      </div>
+      <label class="check"><input type="checkbox" id="hideTransport"> Leave out transportation cost</label>
+      <div class="chart"><canvas id="chart2" aria-label="Cost components by scenario" role="img"></canvas></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div><h2>Scorecard</h2><div class="sub">Total annual cost, change from forecast, and share of demand delivered within the contract limit</div></div>
+    <div class="scroll"><table id="score"></table></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const R=["Northeast","Southeast","Midwest","Southwest","West Coast"], RS=["NE","SE","MW","SW","WC"];
+const S={
+  share:[28,18,22,14,18], expect:[2,2,2,3,3],
+  P:{volume:800, limit:3, threshold:80, invBase:600000, penalty:0.02},
+  dcs:[["Chicago, IL",1.8,[2.1,2.8,1.2,3.1,4.2]],["Dallas, TX",1.4,[3.1,1.8,2.2,1.0,3.3]],["Los Angeles, CA",2.1,[5.0,4.2,3.8,1.5,0.9]],["Columbus, OH",1.5,[1.3,1.9,1.1,3.0,4.5]],["Atlanta, GA",1.3,[1.9,0.8,2.3,2.9,4.8]],["Denver, CO",1.6,[4.1,3.2,2.9,1.4,1.8]],["Memphis, TN",1.2,[2.5,1.0,1.6,2.1,4.0]],["Reno, NV",1.7,[4.8,4.0,3.5,1.7,1.1]]].map(d=>({name:d[0],fixed:d[1],t:d[2]})),
+  modes:[["Truckload",0.08,1],["LTL",0.18,2],["Parcel",0.55,1],["Rail",0.04,4]].map(m=>({name:m[0],cost:m[1],floor:m[2]})),
+  scs:[{name:"Sun Belt & West surge",c:[-10,15,-5,30,20]},{name:"Northeast & Midwest rebound",c:[15,-5,10,-10,-15]},{name:"Across-the-board +10%",c:[10,10,10,10,10]}],
+  nets:[["Chicago only",[0,-1,-1]],["Memphis only",[6,-1,-1]],["Chicago + Dallas",[0,1,-1]],["Columbus + Dallas",[3,1,-1]],["Chicago + Dallas + LA",[0,1,2]],["Columbus + Atlanta + LA",[3,4,2]]].map(n=>({name:n[0],d:n[1],m:[0,0,0,0,0]})),
+  view:"delta", pick:0
+};
+const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=v=>{const a=Math.abs(v),s=v<0?"-":"";return a>=1e9?s+"$"+(a/1e9).toFixed(2)+"B":a>=1e6?s+"$"+(a/1e6).toFixed(a>=1e8?0:1)+"M":s+"$"+Math.round(a/1e3)+"K"};
+const signed=v=>(v>0?"+":"")+money(v);
+
+function units(c){return R.map((_,i)=>S.P.volume*1e6*S.share[i]/100*(1+(c?c[i]:0)/100))}
+function run(net,u){
+  const ds=net.d.filter(i=>i>=0&&S.dcs[i]); let fixed=0,transport=0,penalty=0,ok=0,tot=0;
+  ds.forEach(i=>fixed+=S.dcs[i].fixed*1e6);
+  R.forEach((_,r)=>{const m=S.modes[net.m[r]]||S.modes[0];
+    const best=ds.length?Math.min(...ds.map(i=>S.dcs[i].t[r])):Infinity, lane=Math.max(best,m.floor), late=lane>S.P.limit;
+    transport+=u[r]*m.cost; tot+=u[r]; if(late)penalty+=u[r]*S.P.penalty; else ok+=u[r];});
+  const inv=ds.length?S.P.invBase*Math.sqrt(ds.length):0;
+  return {fixed,transport,inv,penalty,total:fixed+transport+inv+penalty,svc:tot?ok/tot*100:0};
+}
+function results(){const cols=[{name:"Forecast",c:null},...S.scs];return {cols,rows:S.nets.map(n=>cols.map(c=>run(n,units(c.c))))}}
+
+/* ---------- input tables ---------- */
+const opt=(list,sel,none)=>(none?`<option value="-1"${sel<0?" selected":""}>None</option>`:"")+list.map((o,i)=>`<option value="${i}"${i==sel?" selected":""}>${esc(o.name)}</option>`).join("");
+function drawInputs(){
+  $("nets").innerHTML=`<tr><th>Network</th><th>DC 1</th><th>DC 2</th><th>DC 3</th>${R.map(r=>`<th>${r} mode</th>`).join("")}<th></th></tr>`+
+    S.nets.map((n,i)=>`<tr><td><span class="dot" style="background:var(--s${i+1})"></span><input class="name" id="n${i}name" data-k="nets.${i}.name" value="${esc(n.name)}" aria-label="Network name"></td>`+
+      n.d.map((d,j)=>`<td><select id="n${i}d${j}" data-k="nets.${i}.d.${j}" data-n aria-label="DC ${j+1}">${opt(S.dcs,d,j>0)}</select></td>`).join("")+
+      n.m.map((m,j)=>`<td><select id="n${i}m${j}" data-k="nets.${i}.m.${j}" data-n aria-label="${R[j]} mode">${opt(S.modes,m)}</select></td>`).join("")+
+      `<td><button class="x" data-rm="nets.${i}" aria-label="Remove ${esc(n.name)}"${S.nets.length<2?" disabled":""}>×</button></td></tr>`).join("");
+  $("addNet").disabled=S.nets.length>=6;
+  $("scs").innerHTML=`<tr><th>Scenario</th>${R.map(r=>`<th class="num">${r} %</th>`).join("")}<th class="num">Total units</th><th></th></tr>`+
+    `<tr><td>Forecast</td>${R.map(()=>`<td class="num">0</td>`).join("")}<td class="num" id="tu-f"></td><td></td></tr>`+
+    S.scs.map((s,i)=>`<tr><td><input class="name" id="s${i}name" data-k="scs.${i}.name" value="${esc(s.name)}" aria-label="Scenario name"></td>`+
+      s.c.map((c,j)=>`<td class="num"><input type="number" step="1" id="s${i}c${j}" data-k="scs.${i}.c.${j}" data-n value="${c}" aria-label="${R[j]} percent change"></td>`).join("")+
+      `<td class="num" id="tu-${i}"></td><td><button class="x" data-rm="scs.${i}" aria-label="Remove ${esc(s.name)}"${S.scs.length<2?" disabled":""}>×</button></td></tr>`).join("");
+  $("addSc").disabled=S.scs.length>=6;
+  const pf=[["volume","Forecast volume (million units)",10],["limit","Contract transit limit (days)",0.5],["threshold","Contract coverage needed (%)",1],["invBase","Inventory cost with 1 DC ($/yr)",50000],["penalty","Late-delivery charge ($/unit)",0.01]];
+  $("params").innerHTML=pf.map(p=>`<label>${p[1]}<input class="wide" type="number" step="${p[2]}" min="0" id="p-${p[0]}" data-k="P.${p[0]}" data-n value="${S.P[p[0]]}"></label>`).join("");
+  $("dcT").innerHTML=`<tr><th>DC city</th><th class="num">Fixed cost ($M/yr)</th>${RS.map(r=>`<th class="num">Days to ${r}</th>`).join("")}</tr>`+
+    S.dcs.map((d,i)=>`<tr><td>${esc(d.name)}</td><td class="num"><input type="number" step="0.1" min="0" id="d${i}f" data-k="dcs.${i}.fixed" data-n value="${d.fixed}" aria-label="${esc(d.name)} fixed cost"></td>`+
+      d.t.map((t,j)=>`<td class="num"><input type="number" step="0.1" min="0" id="d${i}t${j}" data-k="dcs.${i}.t.${j}" data-n value="${t}" aria-label="${esc(d.name)} days to ${R[j]}"></td>`).join("")+`</tr>`).join("");
+  $("modeT").innerHTML=`<tr><th>Mode</th><th class="num">Cost ($/unit)</th><th class="num">Fastest transit (days)</th></tr>`+
+    S.modes.map((m,i)=>`<tr><td>${m.name}</td><td class="num"><input type="number" step="0.01" min="0" id="m${i}c" data-k="modes.${i}.cost" data-n value="${m.cost}" aria-label="${m.name} cost"></td><td class="num"><input type="number" step="0.5" min="0" id="m${i}f" data-k="modes.${i}.floor" data-n value="${m.floor}" aria-label="${m.name} fastest transit"></td></tr>`).join("");
+  $("regT").innerHTML=`<tr><th>Region</th><th class="num">Forecast share (%)</th></tr>`+
+    R.map((r,i)=>`<tr><td>${r}</td><td class="num"><input type="number" step="1" min="0" id="r${i}s" data-k="share.${i}" data-n value="${S.share[i]}" aria-label="${r} forecast share"></td></tr>`).join("");
+  $("pickNet").innerHTML=opt(S.nets,S.pick);
+}
+function setPath(k,v){const p=k.split(".");let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v}
+document.addEventListener("input",e=>{const el=e.target,k=el.dataset&&el.dataset.k;if(!k)return;
+  let v=el.value; if("n" in el.dataset){v=parseFloat(v);if(!isFinite(v))v=0}
+  setPath(k,v); if(k.startsWith("nets.")&&k.endsWith(".name"))$("pickNet").innerHTML=opt(S.nets,S.pick); drawOut();});
+document.addEventListener("click",e=>{const rm=e.target.dataset&&e.target.dataset.rm;if(!rm)return;const[a,i]=rm.split(".");S[a].splice(+i,1);if(S.pick>=S.nets.length)S.pick=0;drawInputs();drawOut();});
+$("addNet").onclick=()=>{S.nets.push({name:"Team "+(S.nets.length+1),d:[0,-1,-1],m:[0,0,0,0,0]});drawInputs();drawOut()};
+$("addSc").onclick=()=>{S.scs.push({name:"Scenario "+(S.scs.length+1),c:[0,0,0,0,0]});drawInputs();drawOut()};
+$("pickNet").onchange=e=>{S.pick=+e.target.value;drawOut()};
+$("hideTransport").onchange=e=>{S.hideT=e.target.checked;drawOut()};
+function setView(v){S.view=v;$("viewDelta").setAttribute("aria-pressed",v=="delta");$("viewTotal").setAttribute("aria-pressed",v=="total");$("c1title").textContent=v=="delta"?"Cost change vs. forecast":"Total annual cost";drawOut()}
+$("viewDelta").onclick=()=>setView("delta"); $("viewTotal").onclick=()=>setView("total");
+
+/* ---------- outputs ---------- */
+let ch1,ch2;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function baseOpts(stacked){const ink2=css("--ink2"),line=css("--line");
+  return {responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{position:"bottom",labels:{color:ink2,boxWidth:10,boxHeight:10,font:{family:"IBM Plex Sans",size:12}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${S.view=="delta"&&!stacked?signed(c.raw):money(c.raw)}`}}},
+    scales:{x:{stacked,grid:{display:false},ticks:{color:ink2,font:{family:"IBM Plex Sans",size:12}},border:{color:line}},
+      y:{stacked,grid:{color:line},border:{display:false},ticks:{color:ink2,font:{family:"IBM Plex Sans",size:12},callback:v=>money(v)}}}}}
+function drawOut(){
+  const {cols,rows}=results(), surf=css("--surface");
+  $("tu-f").textContent=Math.round(units(null).reduce((a,b)=>a+b)/1e6)+"M";
+  S.scs.forEach((s,i)=>{const el=$("tu-"+i);if(el)el.textContent=Math.round(units(s.c).reduce((a,b)=>a+b)/1e6)+"M"});
+  const delta=S.view=="delta", from=delta?1:0;
+  const d1={labels:cols.slice(from).map(c=>c.name),datasets:S.nets.map((n,i)=>({label:n.name,backgroundColor:css("--s"+(i+1)),borderColor:surf,borderWidth:1,borderRadius:3,
+    data:rows[i].slice(from).map(r=>delta?r.total-rows[i][0].total:r.total)}))};
+  if(ch1)ch1.destroy(); ch1=new Chart($("chart1"),{type:"bar",data:d1,options:baseOpts(false)});
+  const pr=rows[S.pick]||rows[0], comp=[["DC fixed cost","fixed"],["Transportation","transport"],["Inventory","inv"],["Late-delivery charges","penalty"]];
+  const d2={labels:cols.map(c=>c.name),datasets:comp.map((c,i)=>({label:c[0],backgroundColor:css("--s"+(i+1)),borderColor:surf,borderWidth:1,data:pr.map(r=>r[c[1]])})).filter(d=>!(S.hideT&&d.label=="Transportation"))};
+  if(ch2)ch2.destroy(); ch2=new Chart($("chart2"),{type:"bar",data:d2,options:baseOpts(true)});
+  $("score").innerHTML=`<tr><th>Network</th>${cols.map(c=>`<th class="num">${esc(c.name)}</th>`).join("")}</tr>`+
+    S.nets.map((n,i)=>`<tr><td><span class="dot" style="background:var(--s${i+1})"></span>${esc(n.name)}</td>`+rows[i].map((r,j)=>{const dl=r.total-rows[i][0].total,ok=r.svc>=S.P.threshold;
+      return `<td class="num">${money(r.total)}${j?` <span class="${dl>0?"up":dl<0?"down":""}">${signed(dl)}</span>`:""}<br>${r.svc.toFixed(1)}% in ${S.P.limit} days<span class="pill ${ok?"ok":"no"}">${ok?"✓ Kept":"✕ Breached"}</span></td>`}).join("")+`</tr>`).join("");
+}
+drawInputs(); drawOut();
+new MutationObserver(drawOut).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",drawOut);
+</script>
+
+</body></html>
