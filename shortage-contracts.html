@@ -1,0 +1,714 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Shortage Chain Contracts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sequence-diagram board. Supply-chain links are columns with dashed lifelines; SCOR processes are swimlanes; each handoff is a contract card stretched between two lifelines. Palette of draggable blocks on the left. */
+:root{
+  --paper:#F2F4F3; --surface:#FFFFFF; --sunk:#E7EBE9; --ink:#17202A; --muted:#55616C; --line:#C9D1CD;
+  --accent:#4E2A84; --accent-ink:#FFFFFF;
+  --ok:#1D7748; --warn:#9A620E; --bad:#B42318; --info:#2F64A3;
+  --ch-bg:#1E2833; --ch-fg:#EEF2F0;
+  --plan:#2F64A3; --source:#1F7C6B; --make:#8A5520; --deliver:#6A4BA6; --return:#A63D5A; --enable:#56651C;
+  --phi:#A63D5A;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10151B; --surface:#19212A; --sunk:#212A34; --ink:#E5EAEE; --muted:#9AA6B0; --line:#34414D;
+    --accent:#B99BE3; --accent-ink:#170F24;
+    --ok:#5CC28F; --warn:#E2A84B; --bad:#F27D70; --info:#80AAE2;
+    --ch-bg:#DCE3E8; --ch-fg:#121820;
+    --plan:#80AAE2; --source:#5CC3AF; --make:#D59C5E; --deliver:#AC90E3; --return:#E5819C; --enable:#AABC60;
+    --phi:#E5819C; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10151B; --surface:#19212A; --sunk:#212A34; --ink:#E5EAEE; --muted:#9AA6B0; --line:#34414D;
+  --accent:#B99BE3; --accent-ink:#170F24;
+  --ok:#5CC28F; --warn:#E2A84B; --bad:#F27D70; --info:#80AAE2;
+  --ch-bg:#DCE3E8; --ch-fg:#121820;
+  --plan:#80AAE2; --source:#5CC3AF; --make:#D59C5E; --deliver:#AC90E3; --return:#E5819C; --enable:#AABC60;
+  --phi:#E5819C; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 72px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--f-mono)}
+
+/* Header */
+.top{display:grid;gap:14px;max-width:1500px;margin:0 auto 18px}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(26px,3.4vw,38px);font-weight:700;letter-spacing:-.01em;line-height:1.05}
+.brief{max-width:72ch;color:var(--muted);margin:0}
+.brief strong{color:var(--ink);font-weight:600}
+.steps{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:0;list-style:none;font-size:13px}
+.steps li{display:flex;gap:6px;align-items:baseline}
+.steps b{font-family:var(--f-mono);font-weight:500;color:var(--accent)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.field{display:flex;gap:8px;align-items:center}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+input[type=text],select{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;padding:8px 16px}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger-armed{border-color:var(--bad);color:var(--bad)}
+.spacer{flex:1}
+.injects{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.injects .lbl{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.inj{display:flex;gap:6px;align-items:center;border:1px dashed var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:13px;background:var(--surface)}
+.inj:has(input:checked){border-style:solid;border-color:var(--warn);color:var(--warn)}
+.inj input{accent-color:var(--warn);margin:0}
+.addform{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px}
+
+/* Workspace */
+.work{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px;max-width:1500px;margin:0 auto;align-items:start}
+@media (max-width:900px){.work{grid-template-columns:minmax(0,1fr)}}
+#palette{position:sticky;top:max(12px,env(safe-area-inset-top,0px));max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:14px}
+@media (max-width:900px){#palette{position:static;max-height:none}}
+#palette h2{font-size:15px;font-weight:700}
+.pal-note{font-size:12px;color:var(--muted);margin:2px 0 0}
+.grp{display:grid;gap:6px}
+.grp h3{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.blocks{display:flex;flex-wrap:wrap;gap:5px}
+.block{user-select:none;-webkit-user-select:none;touch-action:none;cursor:grab}
+.b-ch{display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--ch-bg);color:var(--ch-fg);border:1px solid var(--ch-bg);border-radius:6px;padding:6px 10px;text-align:left;width:100%}
+.b-ch .nm{font-weight:600;font-size:13px}
+.b-ch .md{font-family:var(--f-mono);font-size:11px;opacity:.72}
+.b-at{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 7px;font-size:12px}
+.b-at code{font-size:12px}
+.b-at:hover{border-color:var(--muted)}
+.phi{font-style:normal;font-family:var(--f-display);font-weight:700;font-size:9.5px;letter-spacing:.06em;color:var(--phi);border:1px solid var(--phi);border-radius:3px;padding:0 3px;line-height:1.3}
+.block.armed{outline:2px solid var(--accent);outline-offset:1px}
+.ghost{position:fixed;left:0;top:0;z-index:1000;pointer-events:none;opacity:.92;box-shadow:0 6px 18px rgba(0,0,0,.25);width:auto!important}
+body.dragging,body.dragging *{cursor:grabbing!important}
+
+/* Board */
+.board-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 8px 16px}
+#board{display:grid;grid-template-columns:96px repeat(12,minmax(88px,1fr));row-gap:8px;min-width:calc(96px + 12*88px);position:relative}
+.node{z-index:2;text-align:center;padding:4px 6px 14px;position:relative;display:grid;gap:2px;align-content:start}
+.node strong{font-family:var(--f-display);font-weight:700;font-size:14.5px;line-height:1.15}
+.node span{font-size:11.5px;color:var(--muted);line-height:1.25}
+.node::after{content:"";position:absolute;left:50%;bottom:2px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--ink)}
+.corner{font-family:var(--f-display);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);align-self:end;padding:0 6px 14px}
+.band{grid-column:1/-1;z-index:0;border-radius:8px;background:color-mix(in srgb,var(--lane) 9%,transparent)}
+.lane{grid-column:1;z-index:1;padding:10px 8px;display:grid;align-content:start;gap:2px}
+.lane b{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--lane)}
+.lane span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.life{z-index:1;border-left:1.5px dashed var(--line);margin-left:-.75px;pointer-events:none}
+.card{z-index:2;margin:8px 6px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px 10px;display:flex;flex-direction:column;gap:7px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.card.s-ok{border-color:var(--ok)}
+.card.s-warn{border-color:var(--warn)}
+.card.s-bad{border-color:var(--bad);border-width:1.5px}
+.card header{display:flex;align-items:center;gap:6px}
+.lane-tag{font-family:var(--f-display);font-weight:700;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--lane)}
+.card h3{font-size:15px;font-weight:600;line-height:1.2}
+.ask{margin:0;font-size:12px;color:var(--muted);font-style:italic;line-height:1.35}
+.pill{margin-left:auto;font-family:var(--f-display);font-weight:600;font-size:11px;letter-spacing:.04em;padding:1px 7px;border-radius:999px;border:1px solid currentColor}
+.p-ok{color:var(--ok)} .p-warn{color:var(--warn)} .p-bad{color:var(--bad)} .p-na{color:var(--muted)}
+.x{margin-left:auto;border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
+.pill + .x{margin-left:4px}
+.flow{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:600;font-size:12px}
+.flow .end{white-space:nowrap}
+.shaft{flex:1;display:flex;align-items:center;min-width:16px;color:var(--ink)}
+.shaft .ln{flex:1;height:0;border-top:2px solid currentColor}
+.shaft .hl,.shaft .hr{width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;display:none}
+.shaft .hl{border-right:9px solid currentColor}
+.shaft .hr{border-left:9px solid currentColor}
+.flow[data-dir=""] .shaft{color:var(--line)}
+.flow[data-dir=""] .ln{border-top-style:dashed}
+.flow[data-dir="ab"] .hr,.flow[data-dir="both"] .hr,.flow[data-dir="ba"] .hl,.flow[data-dir="both"] .hl{display:block}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:3px 0;cursor:pointer;font-size:14px;line-height:1.3}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.zone{border:1.5px dashed var(--line);border-radius:6px;min-height:34px;padding:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:pointer;background:var(--paper)}
+.zone .ph{font-size:12px;color:var(--muted);padding:0 3px}
+.zone.hot{border-color:var(--accent);border-style:solid;background:color-mix(in srgb,var(--accent) 10%,var(--paper))}
+.zone.nope{border-color:var(--bad)}
+body.armed-ch .zone[data-accept="ch"],body.armed-at .zone[data-accept="at"]{border-color:var(--accent)}
+.zlabel{font-family:var(--f-display);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:-3px}
+.chip{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 2px 1px 6px;font-size:11.5px;max-width:100%}
+.chip code{font-size:11.5px;overflow-wrap:anywhere}
+.chip.c-ch{background:var(--ch-bg);color:var(--ch-fg);border-color:var(--ch-bg);font-weight:600;font-size:12px}
+.chip.miss{border-style:dashed}
+.chip button{border:0;background:none;cursor:pointer;color:inherit;opacity:.6;font-size:14px;line-height:1;padding:0 3px}
+.chip button:hover{opacity:1}
+.sem{display:grid;gap:3px}
+.sem input{font-size:12px;padding:5px 7px;width:100%}
+.notes{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12px;line-height:1.35}
+.notes li{padding-left:12px;position:relative}
+.notes li::before{content:"";position:absolute;left:0;top:.45em;width:6px;height:6px;border-radius:50%;background:currentColor}
+.n-bad{color:var(--bad)} .n-warn{color:var(--warn)} .n-ok{color:var(--ok)} .n-info{color:var(--muted)}
+.notes li span{color:var(--ink)}
+.notes .tag{font-family:var(--f-mono);font-size:10.5px;color:inherit;margin-right:4px}
+
+/* Results */
+#results{max-width:1500px;margin:0 auto 18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:14px}
+.res-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.res-head h2{font-size:22px;font-weight:700}
+.stale{font-size:12px;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:1px 8px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:6px;background:var(--paper)}
+.tile .k{font-size:12px;color:var(--muted);font-weight:500}
+.tile .v{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:15px;font-weight:600;color:var(--muted);margin-left:4px}
+.meter{height:6px;border-radius:3px;background:var(--sunk);position:relative;overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.tile .cmp{font-size:12px;color:var(--muted)}
+.res-cols{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.res-cols{grid-template-columns:minmax(0,1fr)}}
+.res-cols h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:13px}
+.log li{display:grid;grid-template-columns:56px 10px minmax(0,1fr);gap:8px;align-items:baseline}
+.log .d{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.log .dot{width:8px;height:8px;border-radius:50%;background:currentColor;align-self:center}
+.layers{display:grid;gap:8px}
+.layer{display:grid;grid-template-columns:110px minmax(0,1fr) 28px;gap:8px;align-items:center;font-size:13px}
+.layer .meter{height:10px}
+.layer .n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.hint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+/* Toast, armed bar, modal */
+#armbar{background:var(--ink);color:var(--paper);border-radius:8px;padding:8px 8px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12.5px}
+#armbar button{background:var(--paper);color:var(--ink);border:0;border-radius:999px;padding:4px 10px;cursor:pointer;font-weight:600}
+#toast{position:absolute;left:0;top:0;z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:340px}
+.modal{max-width:1500px;margin:0 auto 18px}
+.panel{background:var(--surface);border-radius:10px;border:1.5px solid var(--accent);padding:18px 20px;display:grid;gap:12px}
+.panel h2{font-size:22px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:8px 10px;cursor:pointer;font-weight:600;border-bottom:2px solid transparent;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.ros{margin:0;padding-left:20px;display:grid;gap:8px}
+.ros b{font-family:var(--f-display)}
+.ros .t{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.qs{margin:0;padding-left:20px;display:grid;gap:6px}
+.keywrap{overflow-x:auto}
+table.key{border-collapse:collapse;font-size:12.5px;width:100%;min-width:640px}
+.key th,.key td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.key th{font-family:var(--f-display);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.key code{font-size:11.5px}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .2s}}
+</style>
+
+<header class="top">
+  <div class="eyebrow">OPMT 375 · Module 4 activity · Information contracts across SCOR</div>
+  <h1>Shortage Chain Contracts</h1>
+  <p class="brief"><strong>Carboplatin, a core chemotherapy drug, is on national shortage.</strong> At a regional health system, a newly diagnosed patient now waits about five weeks from prescription to first infusion while pharmacists spend 10+ hours a week chasing supply. Your team designs the information contracts that keep six links coordinated. Every handoff below needs a direction, a channel, and a payload the receiver can act on.</p>
+  <ol class="steps">
+    <li><b>1</b>Set who sends (→ ← ⇄)</li>
+    <li><b>2</b>Drag in a channel (protocol)</li>
+    <li><b>3</b>Drag in the fields (schema)</li>
+    <li><b>4</b>Define one field (semantics)</li>
+    <li><b>5</b>Run the week, then add an inject</li>
+  </ol>
+  <div class="bar">
+    <div class="field"><label for="team">Team</label><input type="text" id="team" placeholder="Team name" maxlength="40"></div>
+    <button class="btn" id="btn-add" type="button">Add a handoff</button>
+    <button class="btn" id="btn-copy" type="button">Copy summary</button>
+    <button class="btn" id="btn-guide" type="button">Facilitator guide</button>
+    <button class="btn" id="btn-reset" type="button">Clear board</button>
+    <span class="spacer"></span>
+    <div class="injects" role="group" aria-label="Injects">
+      <span class="lbl">Injects</span>
+      <label class="inj" title="The manufacturer renames a field in its message without warning."><input type="checkbox" id="inj-schema">Schema change</label>
+      <label class="inj" title="A secondary seller offers 200 vials at 4x price with no paperwork."><input type="checkbox" id="inj-gray">Gray-market offer</label>
+      <label class="inj" title="One manufacturing lot is recalled mid-week."><input type="checkbox" id="inj-recall">Lot recall</label>
+    </div>
+    <button class="btn primary" id="btn-run" type="button">Run the week</button>
+  </div>
+  <form class="addform" id="addform" hidden>
+    <select id="add-lane" aria-label="SCOR process"></select>
+    <select id="add-a" aria-label="Between"></select>
+    <span>and</span>
+    <select id="add-b" aria-label="And"></select>
+    <input type="text" id="add-title" placeholder="What is this handoff? e.g. Cold-chain temperature log" maxlength="60" style="flex:1;min-width:200px">
+    <button class="btn primary" type="submit">Add</button>
+    <button class="btn" type="button" id="add-cancel">Cancel</button>
+  </form>
+</header>
+
+<div class="modal" id="guide" hidden>
+  <div class="panel" role="region" aria-labelledby="guide-h">
+    <div style="display:flex;align-items:center;gap:10px"><h2 id="guide-h">Facilitator guide</h2><span class="spacer"></span><button class="btn" type="button" id="guide-close">Close</button></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="ros" type="button">Run of show</button>
+      <button role="tab" aria-selected="false" data-tab="key" type="button">Answer key</button>
+    </div>
+    <div id="tab-ros"></div>
+    <div id="tab-key" hidden></div>
+  </div>
+</div>
+
+<section id="results" hidden aria-live="polite"></section>
+
+<div class="work">
+  <aside id="palette" aria-label="Blocks"></aside>
+  <div class="board-wrap"><div id="board"></div></div>
+</div>
+
+<div id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const NODES=[
+  {id:'mfr',name:'Manufacturer',short:'Mfr',desc:'Two plants, sterile injectables'},
+  {id:'dist',name:'Wholesale distributor',short:'Dist',desc:'Allocates scarce supply'},
+  {id:'pharm',name:'Hospital pharmacy',short:'Pharm',desc:'Buys, stores, prepares doses'},
+  {id:'clinic',name:'Oncology clinic',short:'Clinic',desc:'Prescribes and infuses'},
+  {id:'payer',name:'Payer',short:'Payer',desc:'Approves coverage'},
+  {id:'patient',name:'Patient',short:'Patient',desc:'Waiting to start treatment'}
+];
+const NI=Object.fromEntries(NODES.map((n,i)=>[n.id,i]));
+const LANES=[
+  {id:'plan',name:'Plan',desc:'Balance demand and supply'},
+  {id:'source',name:'Source',desc:'Order and buy'},
+  {id:'make',name:'Make',desc:'Produce and prepare'},
+  {id:'deliver',name:'Deliver',desc:'Ship and schedule'},
+  {id:'return',name:'Return',desc:'Recalls and returns'},
+  {id:'enable',name:'Enable',desc:'Rules, approvals, compliance'}
+];
+const LN=Object.fromEntries(LANES.map(l=>[l.id,l]));
+
+const CH={
+  event:{name:'Event / webhook',mode:'push · seconds'},
+  api:{name:'REST API query',mode:'pull · seconds'},
+  edi:{name:'EDI batch, nightly',mode:'batch · 24 h'},
+  portal:{name:'Shared web portal',mode:'pull · manual'},
+  email:{name:'Email + spreadsheet',mode:'manual'},
+  phone:{name:'Phone / fax',mode:'manual'}
+};
+const MANUAL=new Set(['phone','email']);
+
+const GROUPS=[
+  {name:'Product',items:[['ndc','ndc_code','National Drug Code for the exact product'],['lot','lot_number','Manufacturing lot'],['exp','expiration_date','Use-by date of the lot'],['tclass','therapeutic_class','Drug family, e.g. platinum agent']]},
+  {name:'Inventory',items:[['onhand','on_hand_qty','Units in stock right now'],['alloc','allocated_qty','Units reserved for this customer'],['status','shortage_status','none, constrained or backordered'],['eta','est_availability_date','When supply is expected back'],['alt','alternative_ndc','A substitute product that is available']]},
+  {name:'Order and plan',items:[['po','po_number','Purchase order number'],['qty','order_qty','Units ordered'],['needby','need_by_date','Date the buyer must have it'],['fac','facility_id','Which hospital or site'],['fcst','forecast_qty','Expected usage'],['fper','forecast_period','Window the forecast covers']]},
+  {name:'Shipment',items:[['shipqty','ship_qty','Units on the truck'],['deliv','expected_delivery','Arrival date and time'],['track','tracking_id','Carrier tracking number']]},
+  {name:'Clinical',items:[['equiv','clinical_equivalence','Therapeutic or dose-adjusted match'],['dose','dose_adjustment','How the dose changes for the substitute'],['appr','approval_required','Needs physician or committee sign-off'],['regimen','treatment_regimen','Drugs, doses and cycle schedule']]},
+  {name:'Patient',items:[['pid','patient_id','Medical record number',1],['dx','diagnosis_code','ICD-10 diagnosis',1],['appt','appointment_date','Infusion appointment',1]]},
+  {name:'Financial',items:[['price','contract_price','Negotiated unit price'],['auth','auth_status','Payer decision on prior authorization'],['justif','clinical_justification','Why this treatment is necessary']]},
+  {name:'Returns',items:[['reason','reason_code','Why it is coming back'],['rma','rma_number','Return authorization number'],['rqty','return_qty','Units returned'],['rclass','recall_class','FDA recall class I, II or III']]},
+  {name:'Trust and versioning',items:[['partner','verified_partner_id','Identity checked against a registry'],['ver','schema_version','Which version of the message format'],['ts','event_timestamp','When the fact became true'],['txh','transaction_history','DSCSA pedigree: every prior owner']]}
+];
+const ATTR={};
+GROUPS.forEach(g=>g.items.forEach(([id,field,desc,phi])=>ATTR[id]={id,field,desc,phi:!!phi,group:g.name}));
+const TRUST=new Set(['partner','ver','ts','txh']);
+
+/* Handoffs. a is always the left node. flow: ab = a sends to b, ba = b sends to a, both = request/response. */
+const CARDS=[
+  {id:'alloc',lane:'plan',a:'mfr',b:'dist',title:'Allocation and production plan',ask:'How much will we get, and when?',flow:'ab',need:'daily',req:['ndc','alloc','eta'],rec:['fac','ver','ts'],delay:4,
+   ok:'Allocation and release dates reach the distributor in the next nightly run.',fail:'Allocation cuts only surface when orders start bouncing.',sem:'est_availability_date = first date the distributor can ship, not plant restart'},
+  {id:'fcst',lane:'plan',a:'dist',b:'pharm',title:'Usage forecast',ask:'How much will this hospital need next month?',flow:'ba',need:'daily',req:['ndc','fcst','fper','fac'],rec:['onhand','ts'],delay:3,
+   ok:'The distributor sees real usage and protects this hospital’s allocation.',fail:'The distributor allocates on last year’s purchases and this hospital comes up short.',sem:'forecast_qty = vials administered, not vials ordered'},
+  {id:'po',lane:'source',a:'dist',b:'pharm',title:'Purchase order',ask:'Please send this, by this date.',flow:'ba',need:'daily',req:['po','ndc','qty','needby','fac'],rec:['partner','price'],delay:2,
+   ok:'Orders land with the right quantity and need-by date.',fail:'Orders arrive incomplete and sit in an exception queue.',sem:'order_qty = vials, not cartons of 10'},
+  {id:'avail',lane:'source',a:'dist',b:'pharm',title:'Availability and alternatives',ask:'Do you have it right now? If not, what instead?',flow:'both',oneWayOk:'ab',oneWayNote:'A one-way stock feed works, but the pharmacy cannot ask about a specific NDC. Request and response fits better.',need:'rt',req:['ndc','onhand','status','eta','alt'],rec:['ts','alloc'],delay:6,
+   ok:'The pharmacy checks stock and alternatives in seconds.',fail:'Pharmacists call five suppliers to find out who has carboplatin.',sem:'on_hand_qty = sellable today, excluding units allocated elsewhere'},
+  {id:'disrupt',lane:'make',a:'mfr',b:'dist',title:'Production disruption notice',ask:'A plant just went down.',flow:'ab',need:'push',req:['ndc','status','eta'],rec:['lot','ver','ts'],delay:8,
+   ok:'The distributor sees the outage within minutes and starts allocating.',fail:'The distributor hears about the outage from a sales rep days later.',sem:'shortage_status = backordered means zero units shippable this week'},
+  {id:'subst',lane:'make',a:'pharm',b:'clinic',title:'Substitution and dose preparation',ask:'What can this patient get instead, and at what dose?',flow:'ab',need:'rt',req:['ndc','alt','equiv','dose','appr'],rec:['pid','regimen'],delay:5,
+   ok:'The oncologist gets a substitution with dose guidance inside the clinical workflow.',fail:'The oncologist researches alternatives on their own time.',sem:'clinical_equivalence = therapeutic means no dose change'},
+  {id:'asn',lane:'deliver',a:'dist',b:'pharm',title:'Advance ship notice',ask:'What is on the truck, and when does it arrive?',flow:'ab',need:'daily',req:['po','ndc','lot','exp','shipqty','deliv'],rec:['track','txh','partner'],delay:2,
+   ok:'Receiving checks the shipment against the notice and records lots.',fail:'Receiving cannot match the shipment to an order, so vials sit in quarantine.',sem:'expected_delivery = dock arrival window, local time'},
+  {id:'sched',lane:'deliver',a:'clinic',b:'patient',title:'Treatment schedule',ask:'When is my infusion, and what will I get?',flow:'ab',need:'human',req:['appt','regimen'],rec:['pid'],delay:3,
+   ok:'The patient has a confirmed infusion date and knows the plan changed.',fail:'Nobody tells the patient about the change, and they miss the rescheduled slot.',sem:'appointment_date = chair time, not arrival time'},
+  {id:'pa',lane:'enable',a:'clinic',b:'payer',title:'Prior authorization',ask:'Will the plan cover the substitute regimen?',flow:'both',oneWayNote:'The clinic sends the request but never gets a decision back.',need:'rt',req:['pid','dx','regimen','justif','auth'],rec:['alt','ndc'],delay:7,
+   ok:'The payer approves the substitute regimen the same day.',fail:'Authorizing the substitute takes a week of back-and-forth.',sem:'auth_status = approved covers this regimen only, not later substitutions'},
+  {id:'recall',lane:'return',a:'mfr',b:'pharm',title:'Recall notice',ask:'Which lots must come off the shelf?',flow:'ab',need:'push',req:['ndc','lot','rclass'],rec:['exp','ts','ver'],delay:2,
+   ok:'The recalled lot is identified and pulled the same day.',fail:'The recall arrives by fax and nobody knows which vials are affected.',sem:'recall_class I = stop use immediately, patient risk'},
+  {id:'rtn',lane:'return',a:'dist',b:'pharm',title:'Returns and credits',ask:'Here is what we are sending back, and why.',flow:'ba',need:'daily',req:['rma','ndc','lot','rqty','reason'],rec:['txh','exp'],delay:0,
+   ok:'Expired vials go back with an authorization number, and the credit posts.',fail:'Returns are rejected and the hospital absorbs the cost.',sem:'reason_code EXP = expired in pharmacy, not shipped short-dated'}
+];
+const ORDER=['disrupt','alloc','fcst','avail','po','subst','pa','sched','asn','recall','rtn'];
+const CRITICAL=new Set(['disrupt','alloc','fcst','avail','po','subst','pa','sched','asn','recall']);
+
+const FIT={
+  push:{event:['ok','Pushed the moment it happens.'],api:['warn','The receiver only learns when it asks. Push this one.'],edi:['bad','Up to 24 hours late. In a shortage that is a lost allocation.'],portal:['bad','It sits in a portal until someone happens to look.'],email:['bad','Depends on someone noticing an email.'],phone:['bad','Depends on someone remembering to call.']},
+  rt:{event:['ok','Pushed in real time.'],api:['ok','Answered in seconds when asked.'],edi:['warn','Yesterday’s numbers. Fine for planning, slow for a live shortage.'],portal:['warn','Works, but a person has to log in and check.'],email:['bad','Inbox tag. This is the 10-hours-a-week problem.'],phone:['bad','Phone tag. This is the 10-hours-a-week problem.']},
+  daily:{event:['ok','Faster than needed, which is fine.'],api:['ok','Real time works for a daily cycle.'],edi:['ok','A nightly batch fits a planning cycle.'],portal:['warn','Someone has to remember to upload and download.'],email:['bad','Re-keyed by hand, so errors creep in.'],phone:['bad','Re-keyed by hand, so errors creep in.']},
+  human:{phone:['ok','A real conversation suits a treatment change.'],portal:['ok','The patient portal works.'],event:['ok','An app or text alert works.'],email:['warn','Plain email to a patient can expose health details.'],api:['bad','Patients do not run APIs.'],edi:['bad','Patients do not receive EDI files.']}
+};
+const NEED_LABEL={push:'Event / webhook',rt:'REST API or event',daily:'EDI batch or API',human:'Patient portal, phone or app alert'};
+
+/* ---------- state ---------- */
+const KEY='scc:v1';
+const fresh=()=>({team:'',dirs:{},ch:{},at:{},sem:{},custom:[],inj:{schema:false,gray:false,recall:false},results:null,stale:false});
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));return s&&s.dirs?Object.assign(fresh(),s):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+let st=load()||seedExample();
+const allCards=()=>CARDS.concat(st.custom);
+const cardById=id=>allCards().find(c=>c.id===id);
+
+/* A partly filled board so the page opens in a working state. */
+function seedExample(){
+  const s=fresh();
+  s.dirs={disrupt:'ab',po:'ba'};
+  s.ch={disrupt:'email',po:'edi'};
+  s.at={disrupt:['ndc','status'],po:['po','ndc','qty','fac']};
+  s.example=true;
+  return s;
+}
+function edited(){ if(st.results) st.stale=true; st.example=false; save(); }
+
+/* ---------- evaluation ---------- */
+function evalCard(c){
+  const notes=[]; let worst=0, extra=0;
+  const add=(lvl,layer,text)=>{notes.push({lvl,layer,text}); const w={ok:0,info:0,warn:1,bad:2}[lvl]; if(w>worst) worst=w;};
+  const dir=st.dirs[c.id]||'', ch=st.ch[c.id], at=st.at[c.id]||[];
+  const A=NODES[NI[c.a]].name, B=NODES[NI[c.b]].name;
+  const sender = dir==='ab'?c.a : dir==='ba'?c.b : null;
+  // direction
+  if(!dir) add('bad','direction','No direction set. Nobody owns sending this.');
+  else if(!c.custom){
+    if(dir===c.flow){}
+    else if(c.flow==='both'){ add('warn','direction',c.oneWayNote); }
+    else if(dir==='both'){ add('warn','direction',`Two-way is more than this needs. ${c.flow==='ab'?A:B} owns this data, so make it the sender.`); }
+    else { const s=c.flow==='ab'?A:B, r=c.flow==='ab'?B:A; add('bad','direction',`Backwards. ${s} owns this data, so it flows ${s} → ${r}.`); }
+  }
+  // channel
+  if(!ch) add('bad','protocol','No channel. The message has no way to travel.');
+  else if(c.custom){ if(MANUAL.has(ch)) add('warn','protocol','Manual channel. Fine at low volume, slow at scale.'); }
+  else { const [lvl,t]=FIT[c.need][ch]; add(lvl,'protocol',`${CH[ch].name}: ${t}`); }
+  // payload
+  if(c.custom){ if(!at.length) add('bad','schema','Empty payload. The receiver gets nothing to act on.'); }
+  else {
+    const miss=c.req.filter(x=>!at.includes(x));
+    if(miss.length) add('bad','schema',`Missing ${miss.map(x=>ATTR[x].field).join(', ')}. The receiver cannot act without ${miss.length>1?'these':'it'}.`);
+    const recMiss=c.rec.filter(x=>!at.includes(x)&&!TRUST.has(x));
+    if(!miss.length&&recMiss.length) add('info','schema',`Would help: ${recMiss.map(x=>ATTR[x].field).join(', ')}.`);
+    const extras=at.filter(x=>!c.req.includes(x)&&!c.rec.includes(x)&&!TRUST.has(x)&&!ATTR[x].phi);
+    if(extras.length>=3) add('warn','schema',`Payload bloat: ${extras.map(x=>ATTR[x].field).join(', ')} are not used here. Every extra field is something both sides must maintain.`);
+  }
+  // governance: patient data outside the care team
+  const outside=['mfr','dist'].filter(n=>n===c.a||n===c.b);
+  const phi=at.filter(x=>ATTR[x].phi);
+  if(outside.length&&phi.length) add('bad','governance',`Privacy breach: ${phi.map(x=>ATTR[x].field).join(', ')} goes to the ${NODES[NI[outside[0]]].name.toLowerCase()}. HIPAA allows the minimum necessary.`);
+  // semantics (not scored)
+  if(!(st.sem[c.id]||'').trim()) add('info','semantics','No shared definition yet. Two teams will read the same field differently.');
+  // injects
+  if(st.inj.schema&&sender==='mfr'&&ch&&!MANUAL.has(ch)&&ch!=='portal'){
+    if(!at.includes('ver')){ add('bad','inject','Schema change: the manufacturer renamed est_availability_date. With no schema_version, the receiving parser rejects every message.'); extra+=3; }
+    else add('ok','inject','Schema change: schema_version let the receiver route v2 messages to an updated parser.');
+  }
+  if(st.inj.schema&&sender==='mfr'&&ch&&MANUAL.has(ch)) add('info','inject','Schema change: a person reading the message adapted to the rename. Manual channels absorb change but cost hours.');
+  if(st.inj.gray&&c.id==='asn'){
+    if(!at.includes('txh')){ add('bad','inject','Gray-market offer: 200 vials arrived with no transaction history. Under DSCSA they cannot be verified, so they are quarantined.'); extra+=4; }
+    else add('ok','inject','Gray-market offer: the missing pedigree was caught at receiving and the product refused.');
+  }
+  if(st.inj.gray&&c.id==='po'&&!at.includes('partner')) add('warn','inject','Gray-market offer: without verified_partner_id, nothing stops a PO going to the unverified seller.');
+  if(st.inj.recall&&c.id==='asn'&&!at.includes('lot')){ add('bad','inject','Lot recall: receiving records have no lot numbers, so every vial on the shelf is pulled.'); extra+=3; }
+  if(st.inj.recall&&c.id==='recall'&&ch&&ch!=='event'){ add('warn','inject','Lot recall: the notice was not pushed, so recalled vials stayed in use for hours.'); }
+
+  const status=c.custom?(worst===2?'bad':'na'):(['ok','warn','bad'][worst]);
+  const base=c.delay||0;
+  const delay=status==='bad'?base+extra:status==='warn'?Math.round(base/3)+extra:extra;
+  return {status,notes,delay};
+}
+
+function run(){
+  const res={cards:{},layers:{direction:0,protocol:0,schema:0,governance:0,semantics:0},log:[]};
+  allCards().forEach(c=>{
+    const r=evalCard(c); res.cards[c.id]=r;
+    r.notes.forEach(n=>{
+      if(n.layer==='semantics'){res.layers.semantics++;return;}
+      if((n.lvl==='bad'||n.lvl==='warn')&&res.layers[n.layer]!==undefined) res.layers[n.layer]++;
+      if(n.layer==='inject'&&(n.lvl==='bad'||n.lvl==='warn')){
+        const m=/^([^:]+):/.exec(n.text); const k=n.text.includes('schema_version')||n.text.includes('parser')?'schema':n.text.includes('verified')||n.text.includes('DSCSA')?'governance':'schema';
+        res.layers[k]++;
+      }
+    });
+  });
+  let sum=0; CARDS.forEach(c=>{ if(CRITICAL.has(c.id)) sum+=res.cards[c.id].delay; });
+  res.days=Math.min(35,3+sum);
+  let hrs=2;
+  allCards().forEach(c=>{ if(c.a!=='pharm'&&c.b!=='pharm') return; const ch=st.ch[c.id]; if(MANUAL.has(ch)) hrs+=1.5; else if(ch==='portal') hrs+=.75; if(res.cards[c.id].status==='bad') hrs+=1; });
+  res.hours=Math.min(14,hrs);
+  res.okCount=CARDS.filter(c=>res.cards[c.id].status==='ok').length;
+  // the week
+  let d=0;
+  res.log.push({day:0,lvl:'info',text:'Plant 2 halts its carboplatin line after a sterility failure. A new patient is prescribed carboplatin the same morning.'});
+  if(st.inj.schema) res.log.push({day:0,lvl:'warn',text:'Inject: the manufacturer pushes version 2 of its message format.'});
+  if(st.inj.gray) res.log.push({day:1,lvl:'warn',text:'Inject: a secondary seller offers 200 vials at four times contract price.'});
+  if(st.inj.recall) res.log.push({day:2,lvl:'warn',text:'Inject: lot C2241 is recalled for particulate contamination.'});
+  ORDER.forEach(id=>{
+    const c=cardById(id), r=res.cards[id];
+    if(CRITICAL.has(id)) d+=r.delay;
+    res.log.push({day:Math.min(d,35),lvl:r.status,text:r.status==='ok'?c.ok:r.status==='warn'?c.ok.replace(/\.$/,'')+', but it is fragile.':c.fail});
+  });
+  res.log.push({day:res.days,lvl:res.days<=10?'ok':res.days<=21?'warn':'bad',text:res.days>=35?'First infusion. Five weeks, the same as before the redesign.':`First infusion for the patient, ${res.days} days after the prescription.`});
+  st.results=res; st.stale=false; st.example=false; save();
+  renderResults(); renderBoard();
+  $('#results').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+}
+
+/* ---------- render ---------- */
+function renderPalette(){
+  let h=`<div><h2>Blocks</h2><p class="pal-note">Drag onto a handoff, or tap a block and then tap slots to place it.</p></div><div id="armbar" hidden><span id="armtext"></span><button type="button" id="armstop">Done</button></div>`;
+  h+=`<div class="grp"><h3>Channels · protocol</h3><div class="blocks">`+Object.entries(CH).map(([id,c])=>`<button type="button" class="block b-ch" data-kind="ch" data-id="${id}"><span class="nm">${c.name}</span><span class="md">${c.mode}</span></button>`).join('')+`</div></div>`;
+  GROUPS.forEach(g=>{
+    h+=`<div class="grp"><h3>${g.name}</h3><div class="blocks">`+g.items.map(([id])=>{const a=ATTR[id];return `<button type="button" class="block b-at" data-kind="at" data-id="${id}" title="${esc(a.desc)}"><code>${a.field}</code>${a.phi?'<em class="phi">PHI</em>':''}</button>`}).join('')+`</div></div>`;
+  });
+  $('#palette').innerHTML=h;
+  syncArmed();
+}
+
+function renderBoard(){
+  const cards=allCards();
+  const P=[];
+  P.push(`<div class="corner" style="grid-row:1;grid-column:1">SCOR process</div>`);
+  NODES.forEach((n,i)=>P.push(`<div class="node" style="grid-row:1;grid-column:${2+2*i}/span 2"><strong>${n.name}</strong><span>${n.desc}</span></div>`));
+  let row=2;
+  LANES.forEach(l=>{
+    const items=cards.filter(c=>c.lane===l.id).map(c=>({c,lo:NI[c.a],hi:NI[c.b]}));
+    const tracks=[];
+    items.forEach(x=>{
+      let t=tracks.findIndex(tr=>tr.every(y=>x.hi<=y.lo||x.lo>=y.hi));
+      if(t<0){tracks.push([]);t=tracks.length-1;}
+      tracks[t].push(x); x.track=t;
+    });
+    const n=Math.max(1,tracks.length);
+    P.push(`<div class="band" style="--lane:var(--${l.id});grid-row:${row}/span ${n}"></div>`);
+    P.push(`<div class="lane" style="--lane:var(--${l.id});grid-row:${row}/span ${n}"><b>${l.name}</b><span>${l.desc}</span></div>`);
+    if(!items.length) P.push(`<div style="grid-row:${row};grid-column:2/-1;min-height:44px"></div>`);
+    items.forEach(x=>P.push(cardHTML(x.c,row+x.track)));
+    row+=n;
+  });
+  NODES.forEach((n,i)=>P.push(`<div class="life" style="grid-column:${3+2*i}/span 1;grid-row:1/${row}"></div>`));
+  $('#board').innerHTML=P.join('');
+}
+
+function cardHTML(c,gridRow){
+  const A=NODES[NI[c.a]], B=NODES[NI[c.b]];
+  const dir=st.dirs[c.id]||'', ch=st.ch[c.id], at=st.at[c.id]||[];
+  const r=st.results&&!st.stale?st.results.cards[c.id]:(st.results?st.results.cards[c.id]:null);
+  const status=r?r.status:'';
+  const pillTxt={ok:'Coordinated',warn:'Fragile',bad:'Breaks',na:'Unscored'}[status];
+  const notes=r?r.notes.filter(n=>n.lvl!=='ok'||n.layer==='inject').slice(0,6):[];
+  const dirBtn=(v,sym,label)=>`<button type="button" data-act="dir" data-card="${c.id}" data-v="${v}" aria-pressed="${dir===v}" aria-label="${esc(label)}" title="${esc(label)}">${sym}</button>`;
+  return `<article class="card ${status?'s-'+status:''}" style="--lane:var(--${c.lane});grid-row:${gridRow};grid-column:${3+2*NI[c.a]}/${3+2*NI[c.b]}">
+    <header><span class="lane-tag">${LN[c.lane].name}</span>${status?`<span class="pill p-${status}">${pillTxt}</span>`:''}${c.custom?`<button type="button" class="x" data-act="rm-card" data-card="${c.id}" aria-label="Remove this handoff">×</button>`:''}</header>
+    <h3>${esc(c.title)}</h3>
+    ${c.ask?`<p class="ask">“${esc(c.ask)}”</p>`:''}
+    <div class="flow" data-dir="${dir}"><span class="end">${A.short}</span><span class="shaft"><i class="hl"></i><i class="ln"></i><i class="hr"></i></span><span class="end">${B.short}</span></div>
+    <div class="seg" role="group" aria-label="Direction">${dirBtn('ab','→',`${A.name} sends to ${B.name}`)}${dirBtn('ba','←',`${B.name} sends to ${A.name}`)}${dirBtn('both','⇄','Request and response, both ways')}</div>
+    <div class="zlabel">Channel</div>
+    <div class="zone" data-accept="ch" data-card="${c.id}" tabindex="0" role="button" aria-label="Channel slot for ${esc(c.title)}">${ch?`<span class="chip c-ch">${CH[ch].name}<button type="button" data-act="rm-ch" data-card="${c.id}" aria-label="Remove channel">×</button></span>`:'<span class="ph">Drop a channel</span>'}</div>
+    <div class="zlabel">Payload</div>
+    <div class="zone" data-accept="at" data-card="${c.id}" tabindex="0" role="button" aria-label="Payload slot for ${esc(c.title)}">${at.length?at.map(x=>`<span class="chip"><code>${ATTR[x].field}</code>${ATTR[x].phi?'<em class="phi">PHI</em>':''}<button type="button" data-act="rm-at" data-card="${c.id}" data-id="${x}" aria-label="Remove ${ATTR[x].field}">×</button></span>`).join(''):'<span class="ph">Drop fields</span>'}</div>
+    <label class="sem"><span class="zlabel">Define one field</span><input type="text" id="sem-${c.id}" data-card="${c.id}" value="${esc(st.sem[c.id]||'')}" placeholder="${esc(c.sem||'field = what it means to both sides')}"></label>
+    ${notes.length?`<ul class="notes">${notes.map(n=>`<li class="n-${n.lvl==='ok'?'ok':n.lvl}"><span><span class="tag">${n.layer}</span>${esc(n.text)}</span></li>`).join('')}</ul>`:''}
+  </article>`;
+}
+
+function renderResults(){
+  const el=$('#results'), r=st.results;
+  if(!r){el.hidden=true;return;}
+  el.hidden=false;
+  const dayColor=r.days<=10?'var(--ok)':r.days<=21?'var(--warn)':'var(--bad)';
+  const hrColor=r.hours<=4?'var(--ok)':r.hours<=8?'var(--warn)':'var(--bad)';
+  const okColor=r.okCount>=9?'var(--ok)':r.okCount>=5?'var(--warn)':'var(--bad)';
+  const L=r.layers, maxL=Math.max(4,...Object.values(L));
+  const lrow=(k,label)=>`<div class="layer"><span>${label}</span><div class="meter"><i style="width:${L[k]/maxL*100}%;background:${k==='semantics'?'var(--info)':'var(--bad)'}"></i></div><span class="n">${L[k]}</span></div>`;
+  const team=st.team?` · ${esc(st.team)}`:'';
+  const inj=Object.entries(st.inj).filter(([,v])=>v).map(([k])=>({schema:'schema change',gray:'gray-market offer',recall:'lot recall'}[k]));
+  el.innerHTML=`<div class="res-head"><h2>Week simulated${team}</h2><span class="tile-cmp" style="color:var(--muted);font-size:13px">${inj.length?'Injects: '+inj.join(', '):'No injects'}</span>${st.stale?'<span class="stale">Board changed since this run</span>':''}</div>
+  <div class="tiles">
+    <div class="tile"><span class="k">Days from prescription to first infusion</span><span class="v" style="color:${dayColor}">${r.days}<small>days</small></span><div class="meter"><i style="width:${r.days/35*100}%;background:${dayColor}"></i></div><span class="cmp">Status quo: 35 days (five weeks)</span></div>
+    <div class="tile"><span class="k">Pharmacist hours per week on shortage work</span><span class="v" style="color:${hrColor}">${r.hours.toFixed(1)}<small>h</small></span><div class="meter"><i style="width:${r.hours/14*100}%;background:${hrColor}"></i></div><span class="cmp">Status quo: 10+ hours (Premier, 2024)</span></div>
+    <div class="tile"><span class="k">Handoffs coordinated</span><span class="v" style="color:${okColor}">${r.okCount}<small>of ${CARDS.length}</small></span><div class="meter"><i style="width:${r.okCount/CARDS.length*100}%;background:${okColor}"></i></div><span class="cmp">Fragile and broken handoffs add days</span></div>
+  </div>
+  <div class="res-cols">
+    <div><h3>The week</h3><ol class="log">${r.log.map(e=>`<li class="n-${e.lvl==='na'?'info':e.lvl}"><span class="d">Day ${e.day}</span><span class="dot"></span><span style="color:var(--ink)">${esc(e.text)}</span></li>`).join('')}</ol></div>
+    <div><h3>Where the contracts broke</h3><div class="layers">${lrow('direction','Direction')}${lrow('protocol','Protocol')}${lrow('schema','Schema')}${lrow('governance','Governance')}${lrow('semantics','Semantics')}</div>
+    <p class="hint">Protocol is the channel, schema is the fields, semantics is what the fields mean. Semantics is not scored here: it is the count of handoffs with no shared definition. Ask how many of those you would trust.</p></div>
+  </div>`;
+}
+
+function renderAll(){ $('#team').value=st.team; ['schema','gray','recall'].forEach(k=>$('#inj-'+k).checked=!!st.inj[k]); renderResults(); renderBoard(); }
+
+/* ---------- interactions ---------- */
+let armed=null, drag=null, toastT=null, lastPt=null;
+document.addEventListener('pointerdown',e=>{lastPt={x:e.pageX,y:e.pageY};},true);
+function toast(msg){
+  const t=$('#toast');t.textContent=msg;t.hidden=false;
+  const W=document.documentElement.clientWidth, tw=Math.min(340,W-32);
+  const x=lastPt?Math.max(16,Math.min(lastPt.x-tw/2,W-tw-16)):Math.max(16,W-tw-16);
+  const y=lastPt?lastPt.y+18:16;
+  t.style.width=tw+'px'; t.style.transform=`translate(${x}px,${y}px)`;
+  clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2800);
+}
+function syncArmed(){
+  document.querySelectorAll('#palette .block').forEach(b=>b.classList.toggle('armed',!!armed&&b.dataset.kind===armed.kind&&b.dataset.id===armed.id));
+  document.body.classList.toggle('armed-ch',armed?.kind==='ch'); document.body.classList.toggle('armed-at',armed?.kind==='at');
+  const bar=$('#armbar');
+  if(armed){ bar.hidden=false; $('#armtext').textContent=armed.kind==='ch'?`Placing ${CH[armed.id].name}. Tap channel slots.`:`Placing ${ATTR[armed.id].field}. Tap payload slots.`; }
+  else bar.hidden=true;
+}
+function toggleArm(kind,id){ armed=(armed&&armed.kind===kind&&armed.id===id)?null:{kind,id}; syncArmed(); }
+function place(kind,id,cardId){
+  if(kind==='ch') st.ch[cardId]=id;
+  else { const a=st.at[cardId]||(st.at[cardId]=[]); if(a.includes(id)){toast(`${ATTR[id].field} is already in that payload.`);return;} a.push(id); }
+  edited(); renderBoard(); if(st.results) renderResults();
+}
+
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest('#palette .block'); if(!b||e.button>0) return;
+  drag={b,kind:b.dataset.kind,id:b.dataset.id,x:e.clientX,y:e.clientY,moved:false,ghost:null,over:null};
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  if(!drag.moved){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6) return;
+    drag.moved=true; const g=drag.b.cloneNode(true); g.classList.add('ghost'); g.classList.remove('armed'); document.body.appendChild(g); drag.ghost=g; document.body.classList.add('dragging');
+  }
+  e.preventDefault();
+  drag.ghost.style.transform=`translate(${e.clientX+10}px,${e.clientY+10}px)`;
+  const z=document.elementFromPoint(e.clientX,e.clientY)?.closest('.zone')||null;
+  if(drag.over&&drag.over!==z) drag.over.classList.remove('hot','nope');
+  drag.over=z; if(z) z.classList.add(z.dataset.accept===drag.kind?'hot':'nope');
+  const w=$('.board-wrap'), rc=w.getBoundingClientRect();
+  if(e.clientY>rc.top&&e.clientY<rc.bottom){ if(e.clientX>rc.right-48) w.scrollLeft+=14; else if(e.clientX<rc.left+48&&e.clientX>rc.left) w.scrollLeft-=14; }
+  if(e.clientY>innerHeight-50) scrollBy(0,14); else if(e.clientY<50) scrollBy(0,-14);
+},{passive:false});
+function endDrag(drop){
+  const d=drag; drag=null; if(!d) return;
+  if(d.moved){
+    d.ghost.remove(); document.body.classList.remove('dragging');
+    if(d.over){ d.over.classList.remove('hot','nope'); if(drop){ if(d.over.dataset.accept===d.kind) place(d.kind,d.id,d.over.dataset.card); else toast(d.kind==='ch'?'Channels go in the Channel slot.':'Fields go in the Payload slot.'); } }
+  } else if(drop) toggleArm(d.kind,d.id);
+}
+document.addEventListener('pointerup',()=>endDrag(true));
+document.addEventListener('pointercancel',()=>endDrag(false));
+// keyboard activation of palette blocks
+$('#palette').addEventListener('click',e=>{ const b=e.target.closest('.block'); if(b&&e.detail===0) toggleArm(b.dataset.kind,b.dataset.id); });
+
+$('#board').addEventListener('click',e=>{
+  const act=e.target.closest('[data-act]');
+  if(act){
+    const id=act.dataset.card;
+    if(act.dataset.act==='dir'){ st.dirs[id]=st.dirs[id]===act.dataset.v?'':act.dataset.v; }
+    else if(act.dataset.act==='rm-ch'){ delete st.ch[id]; }
+    else if(act.dataset.act==='rm-at'){ st.at[id]=(st.at[id]||[]).filter(x=>x!==act.dataset.id); }
+    else if(act.dataset.act==='rm-card'){ st.custom=st.custom.filter(c=>c.id!==id); ['dirs','ch','at','sem'].forEach(k=>delete st[k][id]); if(st.results) delete st.results.cards[id]; }
+    edited(); renderBoard(); if(st.results) renderResults(); return;
+  }
+  const z=e.target.closest('.zone'); if(!z) return;
+  if(!armed){ toast('Drag a block here, or tap a block in the palette first.'); return; }
+  if(z.dataset.accept!==armed.kind){ toast(armed.kind==='ch'?'Channels go in the Channel slot.':'Fields go in the Payload slot.'); return; }
+  place(armed.kind,armed.id,z.dataset.card);
+});
+$('#board').addEventListener('keydown',e=>{ const z=e.target.closest('.zone'); if(z&&(e.key==='Enter'||e.key===' ')&&e.target===z){ e.preventDefault(); z.click(); } });
+$('#board').addEventListener('input',e=>{ const i=e.target.closest('input[data-card]'); if(!i) return; st.sem[i.dataset.card]=i.value; edited(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(!$('#guide').hidden) closeGuide(); else if(armed){armed=null;syncArmed();} } });
+$('#palette').addEventListener('click',e=>{ if(e.target.id==='armstop'){armed=null;syncArmed();} });
+
+$('#team').addEventListener('input',e=>{st.team=e.target.value;save(); if(st.results) renderResults();});
+['schema','gray','recall'].forEach(k=>$('#inj-'+k).addEventListener('change',e=>{st.inj[k]=e.target.checked; save(); if(st.results){st.stale=true; renderResults();} toast(e.target.checked?'Inject armed. Predict what breaks, then run the week.':'Inject removed.');}));
+$('#btn-run').addEventListener('click',run);
+
+let resetT=null;
+$('#btn-reset').addEventListener('click',e=>{
+  const b=e.currentTarget;
+  if(!b.classList.contains('danger-armed')){ b.classList.add('danger-armed'); b.textContent='Click again to clear'; resetT=setTimeout(()=>{b.classList.remove('danger-armed');b.textContent='Clear board';},3000); return; }
+  clearTimeout(resetT); b.classList.remove('danger-armed'); b.textContent='Clear board';
+  const team=st.team; st=fresh(); st.team=team; save(); armed=null; syncArmed(); renderAll(); toast('Board cleared.');
+});
+
+// add handoff
+const lanesOpt=LANES.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+const nodesOpt=NODES.map(n=>`<option value="${n.id}">${n.name}</option>`).join('');
+$('#add-lane').innerHTML=lanesOpt; $('#add-a').innerHTML=nodesOpt; $('#add-b').innerHTML=nodesOpt; $('#add-b').value='clinic';
+$('#btn-add').addEventListener('click',()=>{ const f=$('#addform'); f.hidden=!f.hidden; if(!f.hidden) $('#add-title').focus(); });
+$('#add-cancel').addEventListener('click',()=>$('#addform').hidden=true);
+$('#addform').addEventListener('submit',e=>{
+  e.preventDefault();
+  let a=$('#add-a').value,b=$('#add-b').value; const title=$('#add-title').value.trim();
+  if(a===b){toast('Pick two different links.');return;}
+  if(!title){toast('Name the handoff so other teams know what it carries.');$('#add-title').focus();return;}
+  if(NI[a]>NI[b]) [a,b]=[b,a];
+  st.custom.push({id:'c'+Date.now().toString(36),lane:$('#add-lane').value,a,b,title,custom:true});
+  edited(); $('#add-title').value=''; $('#addform').hidden=true; renderBoard(); toast('Handoff added. Custom handoffs are checked for completeness and privacy, not graded.');
+});
+
+// copy summary
+$('#btn-copy').addEventListener('click',async()=>{
+  const lines=[`Shortage Chain Contracts — ${st.team||'Unnamed team'}`];
+  const r=st.results;
+  if(r) lines.push(`Run: ${r.days} days to first infusion · ${r.hours.toFixed(1)} pharmacist h/week · ${r.okCount}/${CARDS.length} handoffs coordinated${st.stale?' (board edited since run)':''}`);
+  lines.push('');
+  LANES.forEach(l=>allCards().filter(c=>c.lane===l.id).forEach(c=>{
+    const A=NODES[NI[c.a]].name,B=NODES[NI[c.b]].name,d=st.dirs[c.id];
+    const dt=d==='ab'?`${A} → ${B}`:d==='ba'?`${B} → ${A}`:d==='both'?`${A} ⇄ ${B}`:`${A} ? ${B}`;
+    const s=r&&r.cards[c.id]?` [${{ok:'coordinated',warn:'fragile',bad:'breaks',na:'unscored'}[r.cards[c.id].status]}]`:'';
+    lines.push(`${l.name.toUpperCase()} · ${c.title}${s}`);
+    lines.push(`  ${dt} via ${st.ch[c.id]?CH[st.ch[c.id]].name:'(no channel)'}`);
+    lines.push(`  fields: ${(st.at[c.id]||[]).map(x=>ATTR[x].field).join(', ')||'(none)'}`);
+    if((st.sem[c.id]||'').trim()) lines.push(`  definition: ${st.sem[c.id].trim()}`);
+  }));
+  const text=lines.join('\n');
+  try{ await navigator.clipboard.writeText(text); toast('Summary copied. Paste it into the Canvas submission.'); }
+  catch(err){ showCopyFallback(text); }
+});
+function showCopyFallback(text){
+  openGuide('ros');
+  $('#tab-ros').innerHTML=`<p>Copying was blocked here. Select the text below and copy it.</p><textarea id="copybox" style="width:100%;min-height:300px;font-family:var(--f-mono);font-size:12px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px">${esc(text)}</textarea>`;
+  $('#guide-h').textContent='Team summary';
+  setTimeout(()=>{const t=$('#copybox');t.focus();t.select();},30);
+}
+
+// facilitator guide
+function rosHTML(){
+  return `<ol class="ros">
+    <li><b>Brief</b> <span class="t">5 min</span><br>Read the scenario aloud. One laptop per team. Point out that the six links are columns and the SCOR processes are lanes, so every card is one arrow on a process flow diagram.</li>
+    <li><b>Build</b> <span class="t">20 min</span><br>Teams set direction, channel and payload for all eleven handoffs. Suggest splitting by lane, then reviewing each other’s cards. Ask each team to write at least three field definitions.</li>
+    <li><b>Run the week</b> <span class="t">5 min</span><br>Run with no injects. Teams fix every red card and note which layer broke.</li>
+    <li><b>Injects</b> <span class="t">10 min</span><br>Turn on one inject at a time. Before each run, have teams predict which card fails and why. Schema change tests versioning, the gray-market offer tests trust and DSCSA pedigree, and the recall tests lot traceability.</li>
+    <li><b>Debrief</b> <span class="t">15 min</span><br><ol class="qs">
+      <li>Which layer broke most: direction, protocol, schema or semantics? Compare across teams.</li>
+      <li>Where did a manual channel hide a problem? (The schema change does not break a phone call. What does that cost instead?)</li>
+      <li>Which handoff is THE constraint on days-to-infusion? If you had $2M, which one card would you fund first?</li>
+      <li>Compare two teams’ definitions of <code>on_hand_qty</code>. Would their systems agree?</li>
+      <li>McLean gave away the container design. What would a shared standard for drug availability need, and who would have to give something up?</li>
+    </ol></li>
+  </ol>
+  <p class="hint">Scoring logic: each handoff has a sender, a timing need (push, real time, daily, or human) and required fields. Broken handoffs on the treatment path add days; fragile ones add about a third. Patient fields sent to the manufacturer or distributor are flagged as a privacy breach. Boards save in this browser only.</p>`;
+}
+function keyHTML(){
+  return `<div id="keygate"><p>The answer key shows the expected direction, channel and required fields for every handoff. Hide it from students until the debrief.</p><button class="btn primary" type="button" id="keyshow">Show answer key</button></div>`;
+}
+function keyTable(){
+  return `<div class="keywrap"><table class="key"><thead><tr><th>SCOR</th><th>Handoff</th><th>Direction</th><th>Best channel</th><th>Required fields</th><th>Helpful</th></tr></thead><tbody>${CARDS.map(c=>{
+    const A=NODES[NI[c.a]].name,B=NODES[NI[c.b]].name;
+    const d=c.flow==='ab'?`${A} → ${B}`:c.flow==='ba'?`${B} → ${A}`:`${A} ⇄ ${B}`;
+    return `<tr><td>${LN[c.lane].name}</td><td>${c.title}</td><td>${d}</td><td>${NEED_LABEL[c.need]}</td><td>${c.req.map(x=>`<code>${ATTR[x].field}</code>`).join(', ')}</td><td>${c.rec.map(x=>`<code>${ATTR[x].field}</code>`).join(', ')}</td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function openGuide(tab){
+  $('#guide-h').textContent='Facilitator guide';
+  $('#tab-ros').innerHTML=rosHTML(); $('#tab-key').innerHTML=keyHTML();
+  setTab(tab||'ros'); $('#guide').hidden=false;
+  $('#guide').scrollIntoView({block:'start'}); $('#guide-close').focus({preventScroll:true});
+}
+function closeGuide(){ $('#guide').hidden=true; $('#btn-guide').focus({preventScroll:true}); }
+function setTab(t){ document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t)); $('#tab-ros').hidden=t!=='ros'; $('#tab-key').hidden=t!=='key'; }
+$('#btn-guide').addEventListener('click',()=>{ if(!$('#guide').hidden&&$('#guide-h').textContent==='Facilitator guide') closeGuide(); else openGuide('ros'); });
+$('#guide-close').addEventListener('click',closeGuide);
+$('#guide').addEventListener('click',e=>{ const tb=e.target.closest('.tabs button'); if(tb) setTab(tb.dataset.tab); if(e.target.id==='keyshow') $('#tab-key').innerHTML=keyTable(); });
+
+renderPalette(); renderAll();
+if(st.example) toast('Two handoffs are filled in as an example. Clear the board to start fresh.');
+})();
+</script>
+
+</body></html>
