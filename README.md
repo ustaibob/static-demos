@@ -14,6 +14,7 @@ This workspace now includes a complete Swagger-driven client and API explorer fo
 - `fas-supply-chain-dashboard.html`: manager-focused dashboard for commodity outlook, country exposure, partner trade pulse, and data freshness signals.
 - `fas-lane-companion.html`: companion lane dashboard for customs district import/export exposure and timing risk by partner country.
 - `fas-plan-builder.html`: create, save, and launch planning baselines into dashboards.
+- `shortage-contracts.html`: classroom activity for designing information contracts across a drug-shortage supply chain.
 - `api/fas/[...path].js`: proxy route for both OpenData API paths and Swagger asset paths.
 
 ### Run locally
@@ -45,3 +46,7 @@ Manager dashboard route:
 Lane companion route:
 
 `http://localhost:3000/fas-lane-companion`
+
+Shortage chain contracts route:
+
+`http://localhost:3000/shortage-contracts`
