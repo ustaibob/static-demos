@@ -1,0 +1,327 @@
+{
+  "opmt375-dispatch-generate": {
+    "anchors": {
+      "on_time_pct": {
+        "best": 100.0,
+        "worst": 80
+      },
+      "total_cost": {
+        "best": 262.99,
+        "worst": 302.44
+      },
+      "cycle_h": {
+        "best": 8.12,
+        "worst": 9.37
+      },
+      "ghg_kg": {
+        "best": 28.1,
+        "worst": 75.1
+      }
+    },
+    "events_applied": [],
+    "plans": [
+      {
+        "plan": "Gas van",
+        "input": {
+          "vehicle": "gas",
+          "sequence": "loop"
+        },
+        "miles": 126.8,
+        "cycle_h": 8.12,
+        "on_time": "12/12",
+        "total_cost": 273.23,
+        "energy_cost": 29.58,
+        "labor": 243.65,
+        "fees": 0.0,
+        "ghg_kg": 75.1,
+        "stranded": false,
+        "agility_stress_on_time_pct": null,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 74.0,
+          "responsiveness": 100.0,
+          "environmental": 0.0
+        },
+        "index": 82.2,
+        "notes": []
+      },
+      {
+        "plan": "EV, per-mile plan (driver default charging)",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop"
+        },
+        "miles": 138.1,
+        "cycle_h": 9.46,
+        "on_time": "10/12",
+        "total_cost": 306.22,
+        "energy_cost": 20.45,
+        "labor": 283.77,
+        "fees": 2.0,
+        "ghg_kg": 30.7,
+        "stranded": false,
+        "agility_stress_on_time_pct": null,
+        "scorecard": {
+          "reliability": 16.5,
+          "cost": 0.0,
+          "responsiveness": 0.0,
+          "environmental": 94.5
+        },
+        "index": 16.0,
+        "notes": [
+          "default policy: detour to C1"
+        ]
+      },
+      {
+        "plan": "EV, charge during Harbor Market unload",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop",
+          "charges": [
+            {
+              "at": "S6",
+              "target": "finish"
+            }
+          ]
+        },
+        "miles": 126.8,
+        "cycle_h": 8.29,
+        "on_time": "12/12",
+        "total_cost": 262.99,
+        "energy_cost": 14.4,
+        "labor": 248.59,
+        "fees": 0.0,
+        "ghg_kg": 28.1,
+        "stranded": false,
+        "agility_stress_on_time_pct": null,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 100.0,
+          "responsiveness": 86.4,
+          "environmental": 100.0
+        },
+        "index": 97.3,
+        "notes": []
+      }
+    ]
+  },
+  "opmt375-dispatch-challenge": {
+    "anchors": {
+      "on_time_pct": {
+        "best": 100.0,
+        "worst": 80
+      },
+      "total_cost": {
+        "best": 293.62,
+        "worst": 337.66
+      },
+      "cycle_h": {
+        "best": 9.18,
+        "worst": 10.43
+      },
+      "ghg_kg": {
+        "best": 31.8,
+        "worst": 101.3
+      }
+    },
+    "events_applied": [
+      "E1",
+      "E3"
+    ],
+    "plans": [
+      {
+        "plan": "Gas van, clockwise",
+        "input": {
+          "vehicle": "gas",
+          "sequence": "loop_cw"
+        },
+        "miles": 143.4,
+        "cycle_h": 9.18,
+        "on_time": "14/14",
+        "total_cost": 308.89,
+        "energy_cost": 33.46,
+        "labor": 275.42,
+        "fees": 0.0,
+        "ghg_kg": 85.0,
+        "stranded": false,
+        "agility_stress_on_time_pct": 100.0,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 65.3,
+          "responsiveness": 100.0,
+          "environmental": 23.5,
+          "agility": 100.0
+        },
+        "index": 81.9,
+        "notes": []
+      },
+      {
+        "plan": "EV, plan Highway 10 charger (C1)",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop_cw",
+          "charges": [
+            {
+              "at": "C1",
+              "after": "S8"
+            }
+          ]
+        },
+        "miles": 88.6,
+        "cycle_h": 7.45,
+        "on_time": "8/14",
+        "total_cost": 481.41,
+        "energy_cost": 7.97,
+        "labor": 223.44,
+        "fees": 250.0,
+        "ghg_kg": 19.7,
+        "stranded": true,
+        "agility_stress_on_time_pct": 57.1,
+        "scorecard": {
+          "reliability": 0.0,
+          "cost": 0.0,
+          "responsiveness": 0.0,
+          "environmental": 0.0,
+          "agility": 57.1
+        },
+        "index": 5.7,
+        "notes": [
+          "C1 down on arrival",
+          "no reachable working charger"
+        ]
+      },
+      {
+        "plan": "EV, opportunity charge S5 (unload) + S10 (to finish)",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop_cw",
+          "charges": [
+            {
+              "at": "S5",
+              "target": "unload_only"
+            },
+            {
+              "at": "S10",
+              "target": "finish"
+            }
+          ]
+        },
+        "miles": 143.4,
+        "cycle_h": 9.18,
+        "on_time": "14/14",
+        "total_cost": 293.62,
+        "energy_cost": 18.2,
+        "labor": 275.42,
+        "fees": 0.0,
+        "ghg_kg": 31.8,
+        "stranded": false,
+        "agility_stress_on_time_pct": 57.1,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 100.0,
+          "responsiveness": 100.0,
+          "environmental": 100.0,
+          "agility": 57.1
+        },
+        "index": 95.7,
+        "notes": []
+      },
+      {
+        "plan": "EV, single long charge at S5",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop_cw",
+          "charges": [
+            {
+              "at": "S5",
+              "target": "finish"
+            }
+          ]
+        },
+        "miles": 143.4,
+        "cycle_h": 9.85,
+        "on_time": "13/14",
+        "total_cost": 312.76,
+        "energy_cost": 17.4,
+        "labor": 295.36,
+        "fees": 0.0,
+        "ghg_kg": 31.8,
+        "stranded": false,
+        "agility_stress_on_time_pct": 35.7,
+        "scorecard": {
+          "reliability": 64.5,
+          "cost": 56.5,
+          "responsiveness": 46.4,
+          "environmental": 100.0,
+          "agility": 35.7
+        },
+        "index": 61.0,
+        "notes": []
+      },
+      {
+        "plan": "R2: C1 team swaps to gas (+$75)",
+        "input": {
+          "vehicle": "gas",
+          "sequence": "loop_cw",
+          "swapped": true
+        },
+        "miles": 143.4,
+        "cycle_h": 9.18,
+        "on_time": "14/14",
+        "total_cost": 383.89,
+        "energy_cost": 33.46,
+        "labor": 275.42,
+        "fees": 75.0,
+        "ghg_kg": 85.0,
+        "stranded": false,
+        "agility_stress_on_time_pct": 100.0,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 0.0,
+          "responsiveness": 100.0,
+          "environmental": 23.5,
+          "agility": 100.0
+        },
+        "index": 62.3,
+        "notes": []
+      },
+      {
+        "plan": "R2: gas team swaps to EV opp plan (+$75)",
+        "input": {
+          "vehicle": "ev",
+          "sequence": "loop_cw",
+          "swapped": true,
+          "charges": [
+            {
+              "at": "S5",
+              "target": "unload_only"
+            },
+            {
+              "at": "S10",
+              "target": "finish"
+            }
+          ]
+        },
+        "miles": 143.4,
+        "cycle_h": 9.18,
+        "on_time": "14/14",
+        "total_cost": 368.62,
+        "energy_cost": 18.2,
+        "labor": 275.42,
+        "fees": 75.0,
+        "ghg_kg": 31.8,
+        "stranded": false,
+        "agility_stress_on_time_pct": 57.1,
+        "scorecard": {
+          "reliability": 100.0,
+          "cost": 0.0,
+          "responsiveness": 100.0,
+          "environmental": 100.0,
+          "agility": 57.1
+        },
+        "index": 65.7,
+        "notes": []
+      }
+    ]
+  }
+}

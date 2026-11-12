@@ -1,0 +1,586 @@
+{
+  "scenario_id": "opmt375-dispatch-challenge",
+  "mode": "challenge",
+  "seed": 3752,
+  "skin": {
+    "company": "Riverbend Roasting Co.",
+    "source": "intake blocks; default skin if none"
+  },
+  "route": {
+    "start": "06:30",
+    "avg_speed_mph": 35,
+    "circuity": 1.3,
+    "depot": [
+      0,
+      0
+    ]
+  },
+  "vehicles": {
+    "gas": {
+      "label": "Gas cargo van",
+      "mpg": 15,
+      "tank_gal": 25,
+      "reserve_frac": 0.1,
+      "refuel_min": 10,
+      "kg_co2e_per_gal": 8.89
+    },
+    "ev": {
+      "label": "Electric cargo van",
+      "kwh_per_mile": 0.6,
+      "usable_kwh": 66,
+      "reserve_frac": 0.15
+    }
+  },
+  "costs": {
+    "gas_gal": 3.5,
+    "depot_kwh": 0.15,
+    "driver_hr": 30,
+    "grid_kg_per_kwh": 0.37,
+    "tow_fee": 250,
+    "tow_delay_min": 120,
+    "vehicle_swap_fee": 75
+  },
+  "stops": [
+    {
+      "id": "S1",
+      "name": "Lakeview Cafe",
+      "xy": [
+        4.2,
+        6.8
+      ],
+      "window": [
+        "06:30",
+        "08:30"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S2",
+      "name": "Cedar Avenue Bakery",
+      "xy": [
+        7.6,
+        14.4
+      ],
+      "window": [
+        "06:30",
+        "09:00"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S3",
+      "name": "Northfield Grocers",
+      "xy": [
+        11.0,
+        22.1
+      ],
+      "window": [
+        "07:30",
+        "10:30"
+      ],
+      "unload_min": 30
+    },
+    {
+      "id": "S4",
+      "name": "Ridgeline Coffee",
+      "xy": [
+        18.7,
+        25.5
+      ],
+      "window": [
+        "07:00",
+        "10:30"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S5",
+      "name": "Prairie Hill Co-op",
+      "xy": [
+        26.3,
+        22.9
+      ],
+      "window": [
+        "08:00",
+        "11:30"
+      ],
+      "unload_min": 40,
+      "site_charger": {
+        "label": "Prairie Hill fleet charger (24 kW)",
+        "eff_kw": 24,
+        "price_kwh": 0.3,
+        "overhead_min": 5
+      }
+    },
+    {
+      "id": "S6",
+      "name": "Marina Cafe",
+      "xy": [
+        31.4,
+        17.0
+      ],
+      "window": [
+        "08:30",
+        "12:00"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S7",
+      "name": "Bridgeport Market",
+      "xy": [
+        33.1,
+        9.3
+      ],
+      "window": [
+        "09:00",
+        "12:30"
+      ],
+      "unload_min": 30
+    },
+    {
+      "id": "S8",
+      "name": "Old Mill Coffee",
+      "xy": [
+        31.4,
+        1.7
+      ],
+      "window": [
+        "09:30",
+        "13:00"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S9",
+      "name": "Eastgate Grocery",
+      "xy": [
+        26.3,
+        -4.2
+      ],
+      "window": [
+        "10:00",
+        "13:30"
+      ],
+      "unload_min": 30
+    },
+    {
+      "id": "S10",
+      "name": "Summit Fresh Market",
+      "xy": [
+        19.6,
+        -8.5
+      ],
+      "window": [
+        "10:30",
+        "14:30"
+      ],
+      "unload_min": 40,
+      "site_charger": {
+        "label": "Summit Fresh DC charger (50 kW)",
+        "eff_kw": 40,
+        "price_kwh": 0.35,
+        "overhead_min": 5
+      }
+    },
+    {
+      "id": "S11",
+      "name": "Two Rivers Deli",
+      "xy": [
+        12.8,
+        -9.3
+      ],
+      "window": [
+        "11:00",
+        "15:00"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S12",
+      "name": "Greenway Cafe",
+      "xy": [
+        7.6,
+        -6.8
+      ],
+      "window": [
+        "11:30",
+        "15:30"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S13",
+      "name": "Riverside Hospital Cafe",
+      "xy": [
+        3.4,
+        -3.4
+      ],
+      "window": [
+        "11:30",
+        "14:45"
+      ],
+      "unload_min": 15
+    },
+    {
+      "id": "S14",
+      "name": "Union Depot Coffee",
+      "xy": [
+        -2.5,
+        2.5
+      ],
+      "window": [
+        "12:00",
+        "16:00"
+      ],
+      "unload_min": 15
+    }
+  ],
+  "chargers": [
+    {
+      "id": "C1",
+      "name": "Highway 10 FastCharge",
+      "type": "public",
+      "xy": [
+        30.6,
+        5.1
+      ],
+      "eff_kw": 35,
+      "price_kwh": 0.45,
+      "session_fee": 2,
+      "overhead_min": 5,
+      "uptime": 0.9,
+      "queue_dist": [
+        [
+          0,
+          0.5
+        ],
+        [
+          10,
+          0.3
+        ],
+        [
+          30,
+          0.2
+        ]
+      ],
+      "published": "Uptime 90%, average wait 10 min"
+    },
+    {
+      "id": "C2",
+      "name": "Mall Plaza Chargers",
+      "type": "public",
+      "xy": [
+        16.1,
+        -11.9
+      ],
+      "eff_kw": 35,
+      "price_kwh": 0.45,
+      "session_fee": 2,
+      "overhead_min": 5,
+      "uptime": 0.85,
+      "queue_dist": [
+        [
+          0,
+          0.4
+        ],
+        [
+          15,
+          0.4
+        ],
+        [
+          40,
+          0.2
+        ]
+      ],
+      "published": "Uptime 85%, average wait 14 min"
+    },
+    {
+      "id": "C3",
+      "name": "Northside Park & Charge",
+      "type": "public",
+      "xy": [
+        15.3,
+        26.3
+      ],
+      "eff_kw": 35,
+      "price_kwh": 0.45,
+      "session_fee": 2,
+      "overhead_min": 5,
+      "uptime": 0.95,
+      "queue_dist": [
+        [
+          0,
+          0.7
+        ],
+        [
+          10,
+          0.3
+        ]
+      ],
+      "published": "Uptime 95%, average wait 3 min"
+    }
+  ],
+  "sequences": {
+    "loop_cw": [
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "S6",
+      "S7",
+      "S8",
+      "S9",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14"
+    ],
+    "loop_ccw": [
+      "S14",
+      "S13",
+      "S12",
+      "S11",
+      "S10",
+      "S9",
+      "S8",
+      "S7",
+      "S6",
+      "S5",
+      "S4",
+      "S3",
+      "S2",
+      "S1"
+    ],
+    "cw_hospital_early": [
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "S6",
+      "S7",
+      "S8",
+      "S9",
+      "S10",
+      "S13",
+      "S11",
+      "S12",
+      "S14"
+    ]
+  },
+  "weights": {
+    "reliability": 40,
+    "cost": 30,
+    "responsiveness": 10,
+    "agility": 10,
+    "environmental": 10
+  },
+  "anchors": {
+    "on_time_pct": {
+      "best": 100.0,
+      "worst": 80
+    },
+    "total_cost": {
+      "best": 293.62,
+      "worst": 337.66
+    },
+    "cycle_h": {
+      "best": 9.18,
+      "worst": 10.43
+    },
+    "ghg_kg": {
+      "best": 31.8,
+      "worst": 101.3
+    }
+  },
+  "log_fields": [
+    "vehicle",
+    "charging_plan (optional)",
+    "predicted_cost",
+    "predicted_cycle_h",
+    "predicted_on_time",
+    "method (per-mile | total-plan | other)",
+    "expected_binding_metric",
+    "rationale_40w"
+  ],
+  "personalization": {
+    "skin": true,
+    "reveal_narration": true,
+    "extension": false
+  },
+  "contract_tolerance": {
+    "on_time_floor_pct": 80,
+    "cost_over_best_pct": 15,
+    "cycle_over_best_h": 1.25,
+    "note": "Customer contract: scores fall to 0 at the floor/ceiling. GHG scales from best plan (100) to the gas baseline (0)."
+  },
+  "event_bank": [
+    {
+      "id": "E1",
+      "truth": "real-structural",
+      "summary": "Highway 10 FastCharge (C1) offline all day for repairs",
+      "channel": "charging network status email",
+      "cues": {
+        "source": "network operator",
+        "specificity": "names site and duration",
+        "confirmation": "status page agrees"
+      },
+      "effect": {
+        "chargers": {
+          "C1": {
+            "up": false
+          }
+        }
+      }
+    },
+    {
+      "id": "E2",
+      "truth": "real-temporary",
+      "summary": "Prairie Hill Co-op fleet charger (S5) reserved by the co-op's own vans this morning",
+      "channel": "text from store receiving manager",
+      "cues": {
+        "source": "customer staff",
+        "specificity": "names charger, says 'this morning'",
+        "confirmation": "none"
+      },
+      "effect": {
+        "stops": {
+          "S5": {
+            "site_charger": null
+          }
+        }
+      }
+    },
+    {
+      "id": "E3",
+      "truth": "trap-horizon",
+      "summary": "Regional gas prices expected to rise about 40 cents per gallon next month",
+      "channel": "trade newsletter headline",
+      "cues": {
+        "source": "industry newsletter",
+        "specificity": "next month, regional",
+        "confirmation": "none"
+      },
+      "effect": {}
+    },
+    {
+      "id": "E4",
+      "truth": "noise",
+      "summary": "Viral post claims 'every fast charger downtown is broken today'",
+      "channel": "social media post forwarded by a driver",
+      "cues": {
+        "source": "anonymous post",
+        "specificity": "vague location",
+        "confirmation": "status pages show chargers up"
+      },
+      "effect": {}
+    },
+    {
+      "id": "E5",
+      "truth": "real-temporary",
+      "summary": "Bridgeport Market (S7) dock congested; unloads running 20 minutes long",
+      "channel": "call from customer",
+      "cues": {
+        "source": "customer",
+        "specificity": "names stop and delay",
+        "confirmation": "none"
+      },
+      "effect": {
+        "stops": {
+          "S7": {
+            "unload_min": 50
+          }
+        }
+      }
+    },
+    {
+      "id": "E6",
+      "truth": "trap-horizon",
+      "summary": "Utility announces higher depot electricity rates starting next quarter",
+      "channel": "utility bill insert",
+      "cues": {
+        "source": "utility",
+        "specificity": "next quarter",
+        "confirmation": "official"
+      },
+      "effect": {}
+    },
+    {
+      "id": "E7",
+      "truth": "real-structural",
+      "summary": "Riverside Hospital Cafe (S13) moves its receiving window to close at 13:45 starting today",
+      "channel": "email from customer",
+      "cues": {
+        "source": "customer",
+        "specificity": "exact time, starting today",
+        "confirmation": "none"
+      },
+      "effect": {
+        "stops": {
+          "S13": {
+            "window": [
+              "11:30",
+              "13:45"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "E8",
+      "truth": "noise",
+      "summary": "Driver group chat rumor that Northside Park & Charge (C3) closed",
+      "channel": "driver group chat",
+      "cues": {
+        "source": "secondhand",
+        "specificity": "no time given",
+        "confirmation": "status page shows C3 up"
+      },
+      "effect": {}
+    }
+  ],
+  "instance_events": [
+    "E1",
+    "E3"
+  ],
+  "events_applied": [
+    {
+      "id": "E1",
+      "truth": "real-structural",
+      "summary": "Highway 10 FastCharge (C1) offline all day for repairs",
+      "channel": "charging network status email",
+      "cues": {
+        "source": "network operator",
+        "specificity": "names site and duration",
+        "confirmation": "status page agrees"
+      },
+      "effect": {
+        "chargers": {
+          "C1": {
+            "up": false
+          }
+        }
+      }
+    },
+    {
+      "id": "E3",
+      "truth": "trap-horizon",
+      "summary": "Regional gas prices expected to rise about 40 cents per gallon next month",
+      "channel": "trade newsletter headline",
+      "cues": {
+        "source": "industry newsletter",
+        "specificity": "next month, regional",
+        "confirmation": "none"
+      },
+      "effect": {}
+    }
+  ],
+  "rounds": {
+    "r1": "commit plan at 06:00 from published data",
+    "dispatch_time": "06:15",
+    "r2": "revise after two dispatch messages; vehicle swap costs vehicle_swap_fee"
+  }
+}
